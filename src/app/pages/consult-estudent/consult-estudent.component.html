@@ -1,0 +1,141 @@
+<!-- Main Content -->
+<main class="main-content">
+    <div class="header-section">
+        <button class="home-button" (click)="volverAlHome()" title="Volver al Home">
+            ← Volver al Home
+        </button>
+        <h1 class="title">CONSULTAR ESTUDIANTES</h1>
+        <button class="add-button" (click)="navegarAgregarEstudiante()">
+            <span class="add-icon">+</span>
+            Agregar Estudiante
+        </button>
+    </div>
+
+    <div class="search-container">
+        <div class="filter-icon" (click)="toggleFilterModal()">
+            <img src="assets/filter.svg" alt="Filtro">
+        </div>
+        <input type="text" class="search-input" placeholder="Buscar estudiante..." 
+               [(ngModel)]="searchTerm" (input)="onSearch(searchTerm)">
+        <button class="search-button" (click)="refreshData()">
+            <img src="assets/search.svg" alt="Buscar">
+        </button>
+    </div>
+
+    <!-- Loading indicator -->
+    <div *ngIf="isLoading" class="loading-container">
+        <p>Cargando estudiantes...</p>
+    </div>
+
+    <!-- Error message -->
+    <div *ngIf="error" class="error-container">
+        <p>{{ error }}</p>
+        <button (click)="refreshData()">Reintentar</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container" *ngIf="!isLoading && !error">
+        <div class="results-info">
+            <p>Mostrando {{ estudiantesFiltrados.length }} de {{ estudiantes.length }} estudiantes</p>
+            <button *ngIf="filtros.programa_id || filtros.promocion_id || filtros.estado_cartera_id || filtros.nivel_ingles_id" 
+                    (click)="clearFilters()" class="clear-filters-btn">
+                Limpiar filtros
+            </button>
+        </div>
+        
+        <table class="companies-table">
+            <thead>
+                <tr>
+                    <th>NOMBRE COMPLETO</th>
+                    <th>DOCUMENTO</th>
+                    <th>CORREO</th>
+                    <th>PROGRAMA</th>
+                    <th>FACULTAD</th>
+                    <th>PROMOCIÓN</th>
+                    <th>NIVEL INGLÉS</th>
+                    <th>ESTADO CARTERA</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let estudiante of estudiantesFiltrados">
+                    <td><a class="student-name" (click)="verPerfilEstudiante(estudiante)">{{ estudiante.nombre_completo }}</a></td>
+                    <td>{{ getTipoDocumentoNombre(estudiante.tipo_documento) }} {{ estudiante.numero_documento }}</td>
+                    <td>{{ estudiante.email_institucional }}</td>
+                    <td>{{ getProgramaNombre(estudiante.programa_id) }}</td>
+                    <td>{{ getFacultadNombre(estudiante.programa_id) }}</td>
+                    <td>{{ getPromocionNombre(estudiante.promocion_id) }}</td>
+                    <td>{{ getNivelInglesNombre(estudiante.nivel_ingles_id) }}</td>
+                    <td>{{ getEstadoCarteraNombre(estudiante.estado_cartera_id) }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- No results message -->
+        <div *ngIf="estudiantesFiltrados.length === 0 && estudiantes.length > 0" class="no-results">
+            <p>No se encontraron estudiantes con los criterios de búsqueda especificados.</p>
+        </div>
+
+        <!-- No data message -->
+        <div *ngIf="estudiantes.length === 0" class="no-data">
+            <p>No hay estudiantes registrados en el sistema.</p>
+        </div>
+    </div>
+</main>
+
+<!-- Filter Modal -->
+<div class="modal-overlay" *ngIf="showFilterModal" (click)="toggleFilterModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <h2 class="modal-title">FILTRAR ESTUDIANTES</h2>
+        
+        <div class="filter-form">
+            <div class="filter-group">
+                <label>PROGRAMA</label>
+                <select class="filter-input" [(ngModel)]="filtros.programa_id" 
+                        (change)="onFilterChange('programa', $event)">
+                    <option [value]="null">Todos los programas</option>
+                    <option *ngFor="let programa of programas" [value]="programa.programa_id">
+                        {{ programa.nombre }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>PROMOCIÓN</label>
+                <select class="filter-input" [(ngModel)]="filtros.promocion_id"
+                        (change)="onFilterChange('promocion', $event)">
+                    <option [value]="null">Todas las promociones</option>
+                    <option *ngFor="let promocion of promociones" [value]="promocion.promocion_id">
+                        {{ promocion.descripcion }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>NIVEL DE INGLÉS</label>
+                <select class="filter-input" [(ngModel)]="filtros.nivel_ingles_id"
+                        (change)="onFilterChange('nivel_ingles', $event)">
+                    <option [value]="null">Todos los niveles</option>
+                    <option *ngFor="let nivel of nivelesIngles" [value]="nivel.nivel_id">
+                        {{ nivel.nombre }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>ESTADO DE CARTERA</label>
+                <select class="filter-input" [(ngModel)]="filtros.estado_cartera_id"
+                        (change)="onFilterChange('estado_cartera', $event)">
+                    <option [value]="null">Todos los estados</option>
+                    <option *ngFor="let estado of estadosCartera" [value]="estado.estado_id">
+                        {{ estado.nombre }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="apply-button" (click)="applyFilters()">APLICAR</button>
+                <button class="cancel-button" (click)="cancelarFiltros()">CANCELAR</button>
+            </div>
+        </div>
+    </div>
+</div>

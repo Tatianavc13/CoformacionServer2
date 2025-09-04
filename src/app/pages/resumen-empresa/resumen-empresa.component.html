@@ -1,0 +1,165 @@
+<div class="container">
+  <!-- Loading indicator -->
+  <div *ngIf="isLoading" class="loading-container">
+    <h2>Cargando información de la empresa...</h2>
+    <p>Por favor espere...</p>
+  </div>
+
+  <!-- Error message -->
+  <div *ngIf="error && !isLoading" class="error-container">
+    <h2>Error</h2>
+    <p>{{ error }}</p>
+    <button class="btn-back" (click)="goBack()">Volver a Consulta de Empresas</button>
+  </div>
+
+  <!-- Company content -->
+  <div *ngIf="!isLoading && !error">
+    <!-- Back button -->
+    <div class="back-button-container">
+      <button class="btn-back" (click)="goBack()">← Volver a Consulta</button>
+    </div>
+
+    <!-- Company Information Section -->
+    <section class="info-section">
+      <h2 class="section-title">INFORMACIÓN: {{ companyInfo.nombreComercial || companyInfo.razonSocial }}</h2>
+      
+      <div class="company-logo">
+        <img src="assets/logoEmpresa.png" alt="Logo de la empresa">
+      </div>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <label>RAZÓN SOCIAL</label>
+          <span>{{ companyInfo.razonSocial || 'No disponible' }}</span>
+        </div>
+        <div class="info-item">
+          <label>NOMBRE COMERCIAL</label>
+          <span>{{ companyInfo.nombreComercial || 'No disponible' }}</span>
+        </div>
+        <div class="info-item">
+          <label>NIT</label>
+          <span>{{ companyInfo.nit || 'No disponible' }}</span>
+        </div>
+        <div class="info-item">
+          <label>RUT</label>
+          <span>{{ companyInfo.rut || 'No disponible' }}</span>
+        </div>
+        <div class="info-item">
+          <label>SECTOR ECONÓMICO</label>
+          <span>{{ companyInfo.sectorNombre || 'No disponible' }}</span>
+        </div>
+        <div class="info-item">
+          <label>TAMAÑO DE EMPRESA</label>
+          <span>{{ companyInfo.tamanoNombre || 'No disponible' }}</span>
+        </div>
+        <div class="info-item">
+          <label>CANTIDAD DE EMPLEADOS</label>
+          <span>{{ companyInfo.cantidadEmpleados || 'No disponible' }}</span>
+        </div>
+        <div class="info-item">
+          <label>DIRECCIÓN</label>
+          <span>{{ companyInfo.direccion || 'No disponible' }}</span>
+        </div>
+        <div class="info-item">
+          <label>CIUDAD</label>
+          <span>{{ companyInfo.ciudad || 'No disponible' }}</span>
+        </div>
+        <div class="info-item">
+          <label>TELÉFONO</label>
+          <span>{{ companyInfo.telefono || 'No disponible' }}</span>
+        </div>
+        <div class="info-item">
+          <label>SITIO WEB</label>
+          <span>
+            <a *ngIf="companyInfo.sitioWeb; else noWebsite" [href]="companyInfo.sitioWeb" target="_blank">
+              {{ companyInfo.sitioWeb }}
+            </a>
+            <ng-template #noWebsite>No disponible</ng-template>
+          </span>
+        </div>
+        <div class="info-item">
+          <label>DESCRIPCIÓN</label>
+          <span>{{ companyInfo.descripcion || 'No disponible' }}</span>
+        </div>
+        <div class="info-item">
+          <label>NACIONAL O INTERNACIONAL</label>
+          <span>{{ companyInfo.nacionalOInternacional || 'No disponible' }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Information Section -->
+    <section class="info-section">
+      <h2 class="section-title">CONTACTO</h2>
+      <div *ngIf="contactInfo.responsable; else noContact">
+        <div class="info-grid">
+          <div class="info-item">
+            <label>RESPONSABLE</label>
+            <span>{{ contactInfo.responsable || 'No disponible' }}</span>
+          </div>
+          <div class="info-item">
+            <label>IDENTIFICACIÓN</label>
+            <span>{{ contactInfo.identificacion || 'No disponible' }}</span>
+          </div>
+          <div class="info-item">
+            <label>CARGO</label>
+            <span>{{ contactInfo.cargo || 'No disponible' }}</span>
+          </div>
+          <div class="info-item">
+            <label>CELULAR</label>
+            <span>{{ contactInfo.celular || 'No disponible' }}</span>
+          </div>
+          <div class="info-item">
+            <label>EMAIL</label>
+            <span>
+              <a *ngIf="contactInfo.email; else noEmail" [href]="'mailto:' + contactInfo.email">
+                {{ contactInfo.email }}
+              </a>
+              <ng-template #noEmail>No disponible</ng-template>
+            </span>
+          </div>
+          <div class="info-item">
+            <label>CORREO ALTERNATIVO</label>
+            <span>
+              <a *ngIf="contactInfo.correoAlternativo; else noAltEmail" [href]="'mailto:' + contactInfo.correoAlternativo">
+                {{ contactInfo.correoAlternativo }}
+              </a>
+              <ng-template #noAltEmail>No disponible</ng-template>
+            </span>
+          </div>
+        </div>
+      </div>
+      <ng-template #noContact>
+        <p class="no-data-message">No hay información de contacto disponible para esta empresa.</p>
+      </ng-template>
+    </section>
+
+    <!-- Students Section -->
+    <section class="info-section">
+      <h2 class="section-title">ESTUDIANTES EN LA EMPRESA</h2>
+      <div *ngIf="students.length > 0; else noStudents">
+        <table class="students-table">
+          <thead>
+            <tr>
+              <th>NOMBRE</th>
+              <th>CÓDIGO</th>
+              <th>PROGRAMA</th>
+              <th>SEMESTRE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let student of students">
+              <td>{{ student.nombre }}</td>
+              <td>{{ student.codigo }}</td>
+              <td>{{ student.programa }}</td>
+              <td>{{ student.semestre }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #noStudents>
+        <p class="no-data-message">No hay estudiantes asignados actualmente a esta empresa.</p>
+      </ng-template>
+    </section>
+  </div>
+</div>

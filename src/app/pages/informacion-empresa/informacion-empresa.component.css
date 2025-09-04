@@ -1,0 +1,651 @@
+/* Estilos generales del cuerpo y fuente */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f0f2f5;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+
+.main-title {
+  color: #1a237e;
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  padding: 1.5rem 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+  border: 1px solid #e0e0e0;
+}
+
+.company-name {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+}
+
+.block-button {
+  background-color: #b71c1c;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.block-button:hover {
+  background-color: #8b0000;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.company-section {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  border: 1px solid #e0e0e0;
+}
+
+.company-logo {
+  margin: 1rem 0 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.company-logo img {
+  max-width: 180px;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Grid de información general de la empresa */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Columnas ajustables */
+  gap: 1.5rem 2rem; /* Espaciado entre items */
+  text-align: left;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.info-item label {
+  display: block;
+  font-weight: 500; /* Menos negrita */
+  color: #555; /* Color de texto más oscuro */
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.2rem;
+}
+
+.info-item span {
+  display: block;
+  padding: 0.85rem 1rem;
+  background: #f8f9fa; /* Fondo más claro para los valores */
+  border-radius: 6px;
+  min-height: 2.8rem;
+  display: flex;
+  align-items: center;
+  color: #333;
+  font-size: 1rem;
+  border: 1px solid #e9ecef;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Tarjetas de sección (Información de contacto, ofertas, estadísticas) */
+.section-card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+}
+
+.section-title {
+  color: #1a237e;
+  font-size: 1.7rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 1.8rem;
+  position: relative;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.section-title::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 3px;
+  background-color: #1a237e;
+  margin: 0.5rem auto 0;
+  border-radius: 2px;
+}
+
+/* Grid de contactos */
+.contacts-grid {
+  display: grid;
+  gap: 1.5rem; /* Espacio entre cada contacto */
+}
+
+.contact-item {
+  background-color: #fdfdfd; /* Fondo ligeramente diferente para cada contacto */
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 1.2rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.contact-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem; /* Espacio entre filas de un mismo contacto */
+}
+
+.contact-row:last-child {
+  margin-bottom: 0;
+}
+
+.contact-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.contact-field label {
+  font-size: 0.8rem;
+  color: #666;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.contact-field span {
+  padding: 0.75rem;
+  background: #f5f5f5;
+  border-radius: 4px;
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+  color: #333;
+  font-size: 0.95rem;
+  border: 1px solid #e9ecef;
+}
+
+/* Grid de ofertas (activa y vencida) */
+.offers-grid {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  overflow: hidden; /* Para que los bordes redondeados se apliquen bien a la tabla */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.offers-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 0.8fr; /* Ajuste de columnas para las ofertas */
+  background: #e3f2fd; /* Fondo azul claro para el encabezado */
+  padding: 1rem 1.5rem;
+  font-weight: 600;
+  color: #0d47a1; /* Texto azul oscuro */
+  font-size: 0.95rem;
+  border-bottom: 1px solid #d0e7fb;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.offers-content {
+  background-color: #ffffff;
+}
+
+.offers-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 0.8fr;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f0f0f0; /* Línea divisoria suave */
+  color: #444;
+  font-size: 0.9rem;
+  align-items: center;
+}
+
+.offers-row:last-child {
+  border-bottom: none;
+}
+
+.status-active {
+  font-weight: 600;
+  color: #28a745; /* Verde para activo */
+  background-color: #e6ffe6;
+  padding: 0.3rem 0.6rem;
+  border-radius: 15px;
+  text-align: center;
+  display: inline-block; /* Para que el padding y border-radius se vean bien */
+}
+
+.status-expired {
+  font-weight: 600;
+  color: #dc3545; /* Rojo para vencido */
+  background-color: #ffe6e6;
+  padding: 0.3rem 0.6rem;
+  border-radius: 15px;
+  text-align: center;
+  display: inline-block;
+}
+
+/* Estadísticas */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.stat-item {
+  background-color: #e8f5e9; /* Fondo suave para los ítems de estadística */
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid #c8e6c9;
+}
+
+.stat-item label {
+  font-size: 0.85rem;
+  color: #444;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  display: block;
+  font-weight: 500;
+}
+
+.stat-number {
+  font-size: 2.2rem; /* Número más grande */
+  font-weight: 700;
+  color: #1a237e; /* Azul oscuro */
+  display: block;
+  margin-top: 0.5rem;
+}
+
+.stat-number.active {
+  color: #28a745; /* Verde para estadísticas activas */
+}
+
+.stat-number.expired {
+  color: #dc3545; /* Rojo para estadísticas vencidas */
+}
+
+/* Mensajes de "No data" */
+.no-data-message {
+  text-align: center;
+  padding: 1.5rem;
+  background-color: #fff3e0; /* Fondo naranja claro */
+  border: 1px solid #ffcc80;
+  border-radius: 8px;
+  color: #e65100;
+  margin-top: 1rem;
+}
+
+.no-data-message p {
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.create-offer-btn {
+  background-color: #4caf50; /* Verde para el botón de crear oferta */
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.create-offer-btn:hover {
+  background-color: #388e3c;
+}
+
+/* Botones de acción inferiores */
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem; /* Menos espacio entre botones */
+  margin-top: 2rem;
+  flex-wrap: wrap; /* Permite que los botones se envuelvan */
+}
+
+.edit-button,
+.primary-button,
+.secondary-button,
+.refresh-button,
+.cancel-button {
+  padding: 0.8rem 1.8rem; /* Padding generoso */
+  border-radius: 25px; /* Bordes muy redondeados */
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.edit-button {
+  background-color: #1a237e; /* Azul oscuro */
+  color: white;
+}
+
+.edit-button:hover {
+  background-color: #0d1259;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.primary-button {
+  background-color: #4caf50; /* Verde para publicar oferta */
+  color: white;
+}
+
+.primary-button:hover {
+  background-color: #388e3c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 76, 0, 0.2);
+}
+
+.secondary-button {
+  background-color: #ffa000; /* Naranja para ver resumen */
+  color: white;
+}
+
+.secondary-button:hover {
+  background-color: #e65100;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.refresh-button {
+  background-color: #0288d1; /* Azul claro para actualizar */
+  color: white;
+}
+
+.refresh-button:hover {
+  background-color: #01579b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.cancel-button {
+  background-color: #d32f2f; /* Rojo para cancelar */
+  color: white;
+}
+
+.cancel-button:hover {
+  background-color: #9a0007;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Contenedores de carga, error, no data */
+.loading-container, .error-container, .no-data-container {
+  text-align: center;
+  padding: 2rem;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  margin: 3rem auto;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.error-container p, .no-data-container p {
+  margin-bottom: 1rem;
+}
+
+.error-container button, .no-data-container button {
+  background-color: #1a237e;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.error-container button:hover, .no-data-container button:hover {
+  background-color: #0d1259;
+}
+
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6); /* Fondo semi-transparente más oscuro */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-container {
+  background-color: white;
+  padding: 2.5rem; /* Más padding */
+  border-radius: 10px; /* Bordes más redondeados */
+  width: 90%;
+  max-width: 450px; /* Ancho máximo ligeramente menor */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Sombra más pronunciada */
+  animation: fadeIn 0.3s ease-out; /* Animación de entrada */
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-title {
+  color: #1a237e;
+  font-size: 1.7rem; /* Título del modal más grande */
+  font-weight: 700;
+  margin: 0 0 1.5rem 0;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.modal-message {
+  color: #444;
+  font-size: 1.05rem;
+  text-align: center;
+  margin-bottom: 2rem; /* Más espacio */
+  line-height: 1.5;
+}
+
+.modal-message strong {
+  color: #1a237e;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.modal-button {
+  padding: 0.8rem 1.8rem;
+  border-radius: 25px; /* Bordes muy redondeados */
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-button.cancel {
+  background-color: #757575; /* Gris oscuro para cancelar */
+  color: white;
+}
+
+.modal-button.cancel:hover {
+  background-color: #555;
+  transform: translateY(-2px);
+}
+
+.modal-button.confirm {
+  background-color: #b71c1c; /* Rojo para confirmar */
+  color: white;
+}
+
+.modal-button.confirm:hover {
+  background-color: #8b0000;
+  transform: translateY(-2px);
+}
+
+.modal-button[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+      padding: 0 1rem;
+  }
+
+  .main-title {
+      font-size: 1.5rem;
+  }
+
+  .header-section {
+      flex-direction: column; /* Apila el nombre y el botón en pantallas pequeñas */
+      align-items: center;
+      gap: 1rem; /* Espacio entre ellos */
+      padding: 1rem;
+  }
+
+  .company-name {
+      font-size: 1.4rem;
+      text-align: center;
+  }
+
+  .company-section {
+      padding: 1.5rem;
+  }
+
+  .info-grid {
+      grid-template-columns: 1fr; /* Una columna en pantallas pequeñas */
+      gap: 1rem;
+  }
+
+  .section-card {
+      padding: 1.5rem;
+  }
+
+  .section-title {
+      font-size: 1.4rem;
+      margin-bottom: 1.2rem;
+  }
+
+  .section-title::after {
+      width: 40px;
+  }
+
+  .offers-header, .offers-row {
+      grid-template-columns: 1.5fr 1fr 1fr 0.8fr; /* Ajuste para columnas en móvil */
+      font-size: 0.85rem;
+      padding: 0.8rem 1rem;
+  }
+
+  .stat-item {
+      padding: 1rem;
+  }
+
+  .stat-number {
+      font-size: 1.8rem;
+  }
+
+  .action-buttons {
+      flex-direction: column; /* Botones apilados */
+      gap: 0.8rem;
+  }
+
+  .edit-button, .primary-button, .secondary-button, .refresh-button, .cancel-button {
+      width: 100%; /* Botones de ancho completo */
+      padding: 0.9rem 1rem;
+      font-size: 0.85rem;
+  }
+
+  .modal-container {
+      padding: 1.5rem;
+  }
+
+  .modal-title {
+      font-size: 1.3rem;
+  }
+
+  .modal-message {
+      font-size: 0.95rem;
+  }
+
+  .modal-button {
+      padding: 0.7rem 1.4rem;
+      font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+      padding: 0 0.5rem;
+  }
+
+  .company-logo img {
+      max-width: 120px;
+  }
+
+  .offers-header, .offers-row {
+      grid-template-columns: 1fr; /* Una sola columna para ofertas */
+      text-align: left;
+  }
+  .offers-header div, .offers-row div {
+      margin-bottom: 5px;
+  }
+  .offers-row div:last-child {
+      margin-bottom: 0;
+  }
+}

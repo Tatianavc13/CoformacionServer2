@@ -1,0 +1,119 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: calc(100vh - 270px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.welcome-section {
+  text-align: center;
+  margin-bottom: 60px;
+  max-width: 800px;
+}
+
+.welcome-title {
+  font-size: 2.5rem;
+  color: #000;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.welcome-text {
+  color: #666;
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.actions-section {
+  display: flex;
+  gap: 80px;
+  justify-content: center;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.action-icon {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+  transition: transform 0.3s ease;
+}
+
+.action-icon:hover {
+  transform: scale(1.05);
+}
+
+.profile-icon {
+  background-color: #FFA500;
+}
+
+.offer-icon {
+  background-color: #ffffff;
+}
+
+.action-icon img {
+  height: 100px;
+  object-fit: contain;
+}
+
+.action-button {
+  background-color: #EE0026;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1rem;
+  text-transform: uppercase;
+  transition: background-color 0.3s ease;
+}
+
+.action-button:hover {
+  background-color: #cc0020;
+}
+
+@media (max-width: 768px) {
+  .welcome-title {
+    font-size: 2rem;
+  }
+
+  .actions-section {
+    gap: 40px;
+  }
+
+  .action-icon {
+    width: 100px;
+    height: 100px;
+  }
+
+  .action-icon img {
+    width: 50px;
+    height: 50px;
+  }
+
+  .action-button {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+
+  .logout-button {
+    position: static;
+    margin-top: 40px;
+  }
+}

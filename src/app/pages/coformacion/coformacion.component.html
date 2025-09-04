@@ -1,0 +1,27 @@
+<!-- Main Content -->
+<main class="main-content">
+    <h1 class="welcome-title">BIENVENIDO {{nombreAsistente}}</h1>
+
+    <div class="options-container">
+        <div class="option-card">
+            <div class="icon-container">
+                <img src="../../../assets/consultEmpresa.svg" alt="Icono Empresa" class="option-icon">
+            </div>
+            <button class="action-btn" (click)="consultarEmpresa()">CONSULTAR EMPRESA</button>
+        </div>
+
+        <div class="option-card">
+            <div class="icon-container">
+                <img src="../../../assets/consultEstudent.svg" alt="Icono Estudiante" class="option-icon">
+            </div>
+            <button class="action-btn" (click)="consultarEstudiante()">CONSULTAR ESTUDIANTE</button>
+        </div>
+
+        <div class="option-card">
+            <div class="icon-container">
+                <img src="../../../assets/IconoOferta.png" class="option-icon">
+            </div>
+            <button class="action-btn" (click)="consultarOfertas()">OFERTAS</button>
+        </div>
+    </div>
+</main>

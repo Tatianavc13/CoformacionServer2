@@ -1,0 +1,52 @@
+<div class="container mt-4">
+  <h2>{{isEditMode ? 'Editar' : 'Nueva'}} Coformación</h2>
+
+  <form [formGroup]="coformacionForm" (ngSubmit)="onSubmit()" class="mt-4">
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label for="nombre_completo" class="form-label">Nombre Completo</label>
+        <input type="text" class="form-control" id="nombre_completo" formControlName="nombre_completo">
+        <div class="text-danger" *ngIf="coformacionForm.get('nombre_completo')?.errors?.['required'] && coformacionForm.get('nombre_completo')?.touched">
+          El nombre es requerido
+        </div>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label for="identificacion" class="form-label">Identificación</label>
+        <input type="text" class="form-control" id="identificacion" formControlName="identificacion">
+        <div class="text-danger" *ngIf="coformacionForm.get('identificacion')?.errors?.['required'] && coformacionForm.get('identificacion')?.touched">
+          La identificación es requerida
+        </div>
+        <div class="text-danger" *ngIf="coformacionForm.get('identificacion')?.errors?.['pattern'] && coformacionForm.get('identificacion')?.touched">
+          La identificación debe tener 10 dígitos
+        </div>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label for="rol" class="form-label">Rol</label>
+        <input type="text" class="form-control" id="rol" formControlName="rol">
+        <div class="text-danger" *ngIf="coformacionForm.get('rol')?.errors?.['required'] && coformacionForm.get('rol')?.touched">
+          El rol es requerido
+        </div>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <div class="form-check mt-4">
+          <input class="form-check-input" type="checkbox" id="estado" formControlName="estado">
+          <label class="form-check-label" for="estado">
+            Activo
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <button type="submit" class="btn btn-primary me-2" [disabled]="!coformacionForm.valid">
+        {{isEditMode ? 'Actualizar' : 'Guardar'}}
+      </button>
+      <button type="button" class="btn btn-secondary" routerLink="/coformacion">
+        Cancelar
+      </button>
+    </div>
+  </form>
+</div> 

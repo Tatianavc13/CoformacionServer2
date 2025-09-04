@@ -1,0 +1,133 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+.logo-container:hover {
+    opacity: 0.8;
+}
+
+.logo {
+    height: 70px;
+    object-fit: contain;
+}
+
+/* User Info Section */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    margin-right: 1rem;
+}
+
+.user-name {
+    font-weight: bold;
+    color: #333;
+    font-size: 1rem;
+}
+
+.user-type {
+    font-size: 0.85rem;
+    color: #666;
+    font-style: italic;
+}
+
+/* Buttons */
+.logout-btn, .login-btn {
+    background-color: #E31837;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.logout-btn:hover, .login-btn:hover {
+    background-color: #c41430;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(227, 24, 55, 0.3);
+}
+
+.login-btn {
+    background-color: #007bff;
+}
+
+.login-btn:hover {
+    background-color: #0056b3;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.auth-actions {
+    display: flex;
+    align-items: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header {
+        padding: 0.5rem 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .user-details {
+        align-items: center;
+        margin-right: 0.5rem;
+    }
+
+    .user-name {
+        font-size: 0.9rem;
+    }
+
+    .user-type {
+        font-size: 0.75rem;
+    }
+
+    .logout-btn, .login-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .user-info {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .user-details {
+        align-items: center;
+        margin-right: 0;
+    }
+
+    .logo {
+        height: 50px;
+    }
+}

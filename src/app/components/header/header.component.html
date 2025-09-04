@@ -1,0 +1,19 @@
+<header class="header">
+    <div class="logo-container" (click)="goToHome()">
+        <img src="../../../assets/logoJuntos.jpg" alt="Logos Uniempresarial y Cámara de Comercio" class="logo">
+    </div>
+    
+    <!-- Mostrar información del usuario si está autenticado -->
+    <div *ngIf="isAuthenticated()" class="user-info">
+        <div class="user-details">
+            <span class="user-name">{{ getUserName() }}</span>
+            <span class="user-type">{{ getUserType() }}</span>
+        </div>
+        <button class="logout-btn" (click)="cerrarSesion()">Cerrar Sesión</button>
+    </div>
+
+    <!-- Botón de login si no está autenticado -->
+    <div *ngIf="!isAuthenticated()" class="auth-actions">
+        <button class="login-btn" (click)="goToLogin()">Iniciar Sesión</button>
+    </div>
+</header>

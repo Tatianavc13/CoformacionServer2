@@ -1,0 +1,124 @@
+<div class="container">
+  <h1 class="main-title">PUBLICAR UNA OFERTA</h1>
+  
+  <p class="disclaimer-text">
+    Agradecemos enormemente a todas las empresas por su valiosa colaboración en el proceso de coformación, 
+    contribuyendo así al crecimiento profesional de nuestros estudiantes.
+  </p>
+
+  <!-- Loading indicator -->
+  <div *ngIf="isLoading" class="loading-container">
+    <p>Publicando oferta...</p>
+  </div>
+
+  <!-- Error message -->
+  <div *ngIf="error" class="error-container">
+    <p class="error-text">{{ error }}</p>
+  </div>
+
+  <form class="offer-form" (ngSubmit)="publicarOferta()" *ngIf="!isLoading">
+    <div class="form-grid">
+      <!-- Primera fila -->
+      <div class="form-group">
+        <label>DESCRIPCIÓN DE LA OFERTA *</label>
+        <textarea 
+          [(ngModel)]="ofertaForm.descripcion" 
+          name="descripcion" 
+          class="form-input textarea-input"
+          placeholder="Describa detalladamente la oferta de coformación..."
+          rows="4"
+          required>
+        </textarea>
+      </div>
+
+      <div class="form-group">
+        <label>PROGRAMA ACADÉMICO *</label>
+        <select [(ngModel)]="ofertaForm.programa_id" name="programa_id" class="form-input" required>
+          <option [value]="undefined" disabled>Seleccione un programa</option>
+          <option *ngFor="let programa of programasList" [value]="programa.programa_id">
+            {{ programa.nombre }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>TIPO DE OFERTA *</label>
+        <select [(ngModel)]="ofertaForm.tipo_oferta" name="tipo_oferta" class="form-input" required>
+          <option value="" disabled>Seleccione tipo</option>
+          <option *ngFor="let tipo of ubicacionesList" [value]="tipo">
+            {{ tipo }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Segunda fila -->
+      <div class="form-group">
+        <label>FECHA DE INICIO *</label>
+        <input 
+          type="date" 
+          [(ngModel)]="ofertaForm.fecha_inicio" 
+          name="fecha_inicio" 
+          class="form-input"
+          required>
+      </div>
+
+      <div class="form-group">
+        <label>FECHA DE FIN *</label>
+        <input 
+          type="date" 
+          [(ngModel)]="ofertaForm.fecha_fin" 
+          name="fecha_fin" 
+          class="form-input"
+          required>
+      </div>
+
+      <div class="form-group">
+        <label>APOYO ECONÓMICO *</label>
+        <select [(ngModel)]="ofertaForm.apoyo_economico" name="apoyo_economico" class="form-input" required>
+          <option value="" disabled>¿Ofrece apoyo económico?</option>
+          <option *ngFor="let apoyo of apoyoEconomicoList" [value]="apoyo">
+            {{ apoyo }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Tercera fila -->
+      <div class="form-group">
+        <label>NOMBRE DEL RESPONSABLE *</label>
+        <input 
+          type="text" 
+          [(ngModel)]="ofertaForm.nombre_responsable" 
+          name="nombre_responsable" 
+          class="form-input"
+          placeholder="Nombre completo del responsable"
+          required>
+      </div>
+
+      <div class="form-group">
+        <label>MODALIDAD *</label>
+        <select [(ngModel)]="ofertaForm.modalidad" name="modalidad" class="form-input" required>
+          <option value="" disabled>Seleccione modalidad</option>
+          <option *ngFor="let modalidad of modalidadList" [value]="modalidad">
+            {{ modalidad }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="button-container">
+      <button 
+        type="submit" 
+        class="submit-button" 
+        [disabled]="isLoading">
+        {{ isLoading ? 'PUBLICANDO...' : 'PUBLICAR OFERTA' }}
+      </button>
+      <button 
+        type="button" 
+        class="cancel-button" 
+        (click)="cancelar()" 
+        [disabled]="isLoading">
+        CANCELAR
+      </button>
+    </div>
+  </form>
+</div>

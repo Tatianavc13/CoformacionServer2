@@ -1,0 +1,250 @@
+<div class="container">
+  <!-- Loading indicator -->
+  <div *ngIf="isLoading" class="loading-container">
+    <h2>Cargando...</h2>
+    <p>Por favor espere mientras se cargan los datos necesarios...</p>
+  </div>
+
+  <!-- Error message -->
+  <div *ngIf="error && !isLoading" class="error-container">
+    <h2>Error</h2>
+    <p>{{ error }}</p>
+    <button class="btn-retry" (click)="loadInitialData()">Reintentar</button>
+  </div>
+
+  <!-- Main form -->
+  <div *ngIf="!isLoading && !error">
+    <!-- Back button -->
+    <div class="back-button-container">
+      <button type="button" class="btn-back" (click)="volverAConsultar()">
+        ← Volver a Consultar Estudiantes
+      </button>
+    </div>
+
+    <h2 class="main-title">Agregar Estudiante</h2>
+    
+    <form [formGroup]="estudianteForm" (ngSubmit)="guardarEstudiante()" class="form-container">
+      
+      <!-- Profile Icon Section -->
+      <div class="profile-section">
+        <div class="profile-icon">
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="white">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Personal Information Section -->
+      <h3 class="section-title">Información Personal</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Código Estudiante *</label>
+          <input type="text" formControlName="codigo_estudiante" placeholder="123456789" [class.is-invalid]="f['codigo_estudiante'].invalid && f['codigo_estudiante'].touched">
+          <div class="invalid-feedback" *ngIf="f['codigo_estudiante'].invalid && f['codigo_estudiante'].touched">
+            <span *ngIf="f['codigo_estudiante'].errors?.['required']">El código es obligatorio</span>
+            <span *ngIf="f['codigo_estudiante'].errors?.['pattern']">Solo se permiten números</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Nombre Completo *</label>
+          <input type="text" formControlName="nombre_completo" placeholder="Nombres y apellidos completos" [class.is-invalid]="f['nombre_completo'].invalid && f['nombre_completo'].touched">
+          <div class="invalid-feedback" *ngIf="f['nombre_completo'].invalid && f['nombre_completo'].touched">
+            <span *ngIf="f['nombre_completo'].errors?.['required']">El nombre es obligatorio</span>
+            <span *ngIf="f['nombre_completo'].errors?.['minlength']">Mínimo 3 caracteres</span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Tipo de Documento *</label>
+          <select formControlName="tipo_documento" [class.is-invalid]="f['tipo_documento'].invalid && f['tipo_documento'].touched">
+            <option value="CC">Cédula de Ciudadanía</option>
+            <option value="CE">Cédula de Extranjería</option>
+            <option value="PAS">Pasaporte</option>
+            <option value="TI">Tarjeta de Identidad</option>
+          </select>
+          <div class="invalid-feedback" *ngIf="f['tipo_documento'].invalid && f['tipo_documento'].touched">
+            El tipo de documento es obligatorio
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Número de Documento *</label>
+          <input type="text" formControlName="numero_documento" placeholder="12345678" [class.is-invalid]="f['numero_documento'].invalid && f['numero_documento'].touched">
+          <div class="invalid-feedback" *ngIf="f['numero_documento'].invalid && f['numero_documento'].touched">
+            <span *ngIf="f['numero_documento'].errors?.['required']">El número de documento es obligatorio</span>
+            <span *ngIf="f['numero_documento'].errors?.['pattern']">Solo se permiten números</span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Fecha de Nacimiento *</label>
+          <input type="date" formControlName="fecha_nacimiento" [class.is-invalid]="f['fecha_nacimiento'].invalid && f['fecha_nacimiento'].touched">
+          <div class="invalid-feedback" *ngIf="f['fecha_nacimiento'].invalid && f['fecha_nacimiento'].touched">
+            La fecha de nacimiento es obligatoria
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Género *</label>
+          <select formControlName="genero" [class.is-invalid]="f['genero'].invalid && f['genero'].touched">
+            <option value="">Seleccionar género</option>
+            <option *ngFor="let genero of generoOptions" [value]="genero.value">{{ genero.label }}</option>
+          </select>
+          <div class="invalid-feedback" *ngIf="f['genero'].invalid && f['genero'].touched">
+            El género es obligatorio
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Information Section -->
+      <h3 class="section-title">Información de Contacto</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text" formControlName="telefono" placeholder="6012345678" [class.is-invalid]="f['telefono'].invalid && f['telefono'].touched">
+          <div class="invalid-feedback" *ngIf="f['telefono'].invalid && f['telefono'].touched">
+            <span *ngIf="f['telefono'].errors?.['pattern']">Formato: 7-10 dígitos</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Celular *</label>
+          <input type="text" formControlName="celular" placeholder="3001234567" [class.is-invalid]="f['celular'].invalid && f['celular'].touched">
+          <div class="invalid-feedback" *ngIf="f['celular'].invalid && f['celular'].touched">
+            <span *ngIf="f['celular'].errors?.['required']">El celular es obligatorio</span>
+            <span *ngIf="f['celular'].errors?.['pattern']">Formato: 10 dígitos</span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Email Institucional *</label>
+          <input type="email" formControlName="email_institucional" placeholder="estudiante@universidad.edu.co" [class.is-invalid]="f['email_institucional'].invalid && f['email_institucional'].touched">
+          <div class="invalid-feedback" *ngIf="f['email_institucional'].invalid && f['email_institucional'].touched">
+            <span *ngIf="f['email_institucional'].errors?.['required']">El email institucional es obligatorio</span>
+            <span *ngIf="f['email_institucional'].errors?.['email']">Formato de email inválido</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email Personal</label>
+          <input type="email" formControlName="email_personal" placeholder="estudiante@gmail.com" [class.is-invalid]="f['email_personal'].invalid && f['email_personal'].touched">
+          <div class="invalid-feedback" *ngIf="f['email_personal'].invalid && f['email_personal'].touched">
+            <span *ngIf="f['email_personal'].errors?.['email']">Formato de email inválido</span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Dirección</label>
+          <input type="text" formControlName="direccion" placeholder="Calle 123 # 45-67">
+        </div>
+        <div class="form-group">
+          <label>Ciudad</label>
+          <input type="text" formControlName="ciudad" placeholder="Bogotá">
+        </div>
+      </div>
+
+      <!-- Academic Information Section -->
+      <h3 class="section-title">Información Académica</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Programa *</label>
+          <select formControlName="programa_id" [class.is-invalid]="f['programa_id'].invalid && f['programa_id'].touched">
+            <option value="">Seleccionar programa</option>
+            <option *ngFor="let programa of programas" [value]="programa.programa_id">
+              {{ programa.nombre }}
+            </option>
+          </select>
+          <div class="invalid-feedback" *ngIf="f['programa_id'].invalid && f['programa_id'].touched">
+            El programa es obligatorio
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Semestre *</label>
+          <input type="number" formControlName="semestre" min="1" max="20" placeholder="1" [class.is-invalid]="f['semestre'].invalid && f['semestre'].touched">
+          <div class="invalid-feedback" *ngIf="f['semestre'].invalid && f['semestre'].touched">
+            <span *ngIf="f['semestre'].errors?.['required']">El semestre es obligatorio</span>
+            <span *ngIf="f['semestre'].errors?.['min'] || f['semestre'].errors?.['max']">Entre 1 y 20</span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Jornada *</label>
+          <select formControlName="jornada" [class.is-invalid]="f['jornada'].invalid && f['jornada'].touched">
+            <option value="">Seleccionar jornada</option>
+            <option *ngFor="let jornada of jornadaOptions" [value]="jornada.value">{{ jornada.label }}</option>
+          </select>
+          <div class="invalid-feedback" *ngIf="f['jornada'].invalid && f['jornada'].touched">
+            La jornada es obligatoria
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Promedio Acumulado</label>
+          <input type="number" formControlName="promedio_acumulado" min="0" max="5" step="0.1" placeholder="4.2" [class.is-invalid]="f['promedio_acumulado'].invalid && f['promedio_acumulado'].touched">
+          <div class="invalid-feedback" *ngIf="f['promedio_acumulado'].invalid && f['promedio_acumulado'].touched">
+            <span *ngIf="f['promedio_acumulado'].errors?.['min'] || f['promedio_acumulado'].errors?.['max']">Entre 0.0 y 5.0</span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Estado *</label>
+          <select formControlName="estado" [class.is-invalid]="f['estado'].invalid && f['estado'].touched">
+            <option *ngFor="let estado of estadoOptions" [value]="estado">{{ estado }}</option>
+          </select>
+          <div class="invalid-feedback" *ngIf="f['estado'].invalid && f['estado'].touched">
+            El estado es obligatorio
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Fecha de Ingreso *</label>
+          <input type="date" formControlName="fecha_ingreso" [class.is-invalid]="f['fecha_ingreso'].invalid && f['fecha_ingreso'].touched">
+          <div class="invalid-feedback" *ngIf="f['fecha_ingreso'].invalid && f['fecha_ingreso'].touched">
+            La fecha de ingreso es obligatoria
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Information Section -->
+      <h3 class="section-title">Información Adicional</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nivel de Inglés</label>
+          <select formControlName="nivel_ingles_id">
+            <option value="">Seleccionar nivel</option>
+            <option *ngFor="let nivel of nivelesIngles" [value]="nivel.nivel_id">
+              {{ nivel.nombre }}
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Promoción</label>
+          <select formControlName="promocion_id">
+            <option value="">Seleccionar promoción</option>
+            <option *ngFor="let promocion of promociones" [value]="promocion.promocion_id">
+              {{ promocion.descripcion }}
+            </option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>Estado de Cartera</label>
+          <select formControlName="estado_cartera_id">
+            <option value="">Seleccionar estado</option>
+            <option *ngFor="let estado of estadosCartera" [value]="estado.estado_id">
+              {{ estado.nombre }}
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>URL Foto</label>
+          <input type="url" formControlName="foto_url" placeholder="https://ejemplo.com/foto.jpg">
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button type="submit" class="btn-guardar" [disabled]="estudianteForm.invalid || isLoading">
+          {{ isLoading ? 'Guardando...' : 'Guardar' }}
+        </button>
+        <button type="button" class="btn-cancelar" (click)="cancelar()" [disabled]="isLoading">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

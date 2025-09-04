@@ -1,0 +1,57 @@
+.footer {
+  background: #000;
+  color: #fff;
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 160px;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.footer-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 18px;
+}
+
+.logos .logo-footer {
+  height: 70px;
+  width: 425px;
+}
+
+.footer-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-icon {
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.icon-phone {
+  background-image: url('https://img.icons8.com/ios-filled/50/ffffff/phone.png');
+}
+.icon-mail {
+  background-image: url('https://img.icons8.com/ios-filled/50/ffffff/new-post.png');
+}
+.icon-globe {
+  background-image: url('https://img.icons8.com/ios-filled/50/ffffff/internet.png');
+}
+.icon-location {
+  background-image: url('https://img.icons8.com/ios-filled/50/ffffff/marker.png');
+}
+
+a {
+  color: #fff;
+  text-decoration: underline;
+}

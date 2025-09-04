@@ -1,0 +1,228 @@
+<div class="container">
+  <!-- Loading indicator -->
+  <div *ngIf="isLoading" class="loading-container">
+    <h2>Cargando...</h2>
+    <p>Por favor espere mientras se cargan los datos necesarios...</p>
+  </div>
+
+  <!-- Error message -->
+  <div *ngIf="error && !isLoading" class="error-container">
+    <h2>Error</h2>
+    <p>{{ error }}</p>
+    <button class="btn-retry" (click)="loadInitialData()">Reintentar</button>
+  </div>
+
+  <!-- Main form -->
+  <div *ngIf="!isLoading && !error">
+    <!-- Back button -->
+    <div class="back-button-container">
+      <button type="button" class="btn-back" (click)="volverAConsultar()">
+        ← Volver a Consultar Empresas
+      </button>
+    </div>
+
+    <h2 class="main-title">Añadir Empresa</h2>
+    
+    <form [formGroup]="empresaForm" (ngSubmit)="guardarEmpresa()" class="form-container">
+      
+      <!-- Profile Icon Section -->
+      <div class="profile-section">
+        <div class="profile-icon">
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="white">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Company Information Grid -->
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" formControlName="nombre_comercial" placeholder="Nombre comercial">
+        </div>
+        <div class="form-group">
+          <label>Razón Social</label>
+          <input type="text" formControlName="razon_social" placeholder="Razón social" [class.is-invalid]="f['razon_social'].invalid && f['razon_social'].touched">
+          <div class="invalid-feedback" *ngIf="f['razon_social'].invalid && f['razon_social'].touched">
+            La razón social es obligatoria
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>NIT</label>
+          <input type="text" formControlName="nit" placeholder="NIT" [class.is-invalid]="f['nit'].invalid && f['nit'].touched">
+          <div class="invalid-feedback" *ngIf="f['nit'].invalid && f['nit'].touched">
+            El NIT es obligatorio
+          </div>
+        </div>
+        <div class="form-group">
+          <label>CCB</label>
+          <input type="text" placeholder="Cámara de Comercio">
+        </div>
+        
+        <div class="form-group">
+          <label>Seleccionar archivo</label>
+          <div class="file-input">
+            <input type="text" placeholder="Archivo seleccionado" readonly>
+            <button type="button" class="file-button">Seleccionar archivo</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Seleccionar archivo</label>
+          <div class="file-input">
+            <input type="text" placeholder="Archivo seleccionado" readonly>
+            <button type="button" class="file-button">Seleccionar archivo</button>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Actividad Económica</label>
+          <input type="text" formControlName="actividad_economica" placeholder="Actividad económica" [class.is-invalid]="f['actividad_economica'].invalid && f['actividad_economica'].touched">
+          <div class="invalid-feedback" *ngIf="f['actividad_economica'].invalid && f['actividad_economica'].touched">
+            La actividad económica es obligatoria
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Dirección</label>
+          <input type="text" formControlName="direccion" placeholder="Dirección" [class.is-invalid]="f['direccion'].invalid && f['direccion'].touched">
+          <div class="invalid-feedback" *ngIf="f['direccion'].invalid && f['direccion'].touched">
+            La dirección es obligatoria
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Sector</label>
+          <select formControlName="sector" [class.is-invalid]="f['sector'].invalid && f['sector'].touched">
+            <option value="">Seleccionar sector</option>
+            <option *ngFor="let sector of sectoresEconomicos" [value]="sector.sector_id">
+              {{ sector.nombre }}
+            </option>
+          </select>
+          <div class="invalid-feedback" *ngIf="f['sector'].invalid && f['sector'].touched">
+            El sector es obligatorio
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Tamaño Empresa</label>
+          <select formControlName="tamano" [class.is-invalid]="f['tamano'].invalid && f['tamano'].touched">
+            <option value="">Seleccionar tamaño</option>
+            <option *ngFor="let tamano of tamanosEmpresa" [value]="tamano.tamano_id">
+              {{ tamano.nombre }}
+            </option>
+          </select>
+          <div class="invalid-feedback" *ngIf="f['tamano'].invalid && f['tamano'].touched">
+            El tamaño es obligatorio
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Localidad</label>
+          <input type="text" formControlName="ciudad" placeholder="Ciudad" [class.is-invalid]="f['ciudad'].invalid && f['ciudad'].touched">
+          <div class="invalid-feedback" *ngIf="f['ciudad'].invalid && f['ciudad'].touched">
+            La ciudad es obligatoria
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Estado</label>
+          <select formControlName="estado">
+            <option [value]="true">Activo</option>
+            <option [value]="false">Inactivo</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>Formato Región</label>
+          <input type="text" formControlName="departamento" placeholder="Departamento" [class.is-invalid]="f['departamento'].invalid && f['departamento'].touched">
+          <div class="invalid-feedback" *ngIf="f['departamento'].invalid && f['departamento'].touched">
+            El departamento es obligatorio
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Número Cliente</label>
+          <input type="text" placeholder="Número de cliente">
+        </div>
+        
+        <div class="form-group">
+          <label>Página Web URL</label>
+          <input type="text" formControlName="sitio_web" placeholder="https://ejemplo.com">
+        </div>
+        <div class="form-group"></div>
+      </div>
+
+      <!-- Convenio Section -->
+      <h3 class="section-title">Convenio</h3>
+      <div class="convenio-grid">
+        <div class="form-group">
+          <label>Tipo de convenio</label>
+          <select formControlName="estado_convenio" [class.is-invalid]="f['estado_convenio'].invalid && f['estado_convenio'].touched">
+            <option *ngFor="let estado of estadoConvenioOptions" [value]="estado">
+              {{ estado }}
+            </option>
+          </select>
+          <div class="invalid-feedback" *ngIf="f['estado_convenio'].invalid && f['estado_convenio'].touched">
+            El estado del convenio es obligatorio
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Fecha de Convenio</label>
+          <input type="date" formControlName="fecha_convenio">
+        </div>
+        <div class="form-group">
+          <label>Duración Convenio (días)</label>
+          <input type="number" placeholder="365">
+        </div>
+      </div>
+
+      <!-- Programs Section -->
+      <h3 class="section-title">Programas Solicitados</h3>
+      <div class="programs-section">
+        <div class="programs-grid">
+          <div *ngFor="let programaSolicitado of programasSolicitados; let i = index" class="program-row">
+            <div class="program-info">
+              <div class="program-icon"></div>
+              <div>
+                <div class="program-name">{{ programaSolicitado.programa.nombre }}</div>
+                <div class="program-code">Código: {{ programaSolicitado.programa.codigo }}</div>
+              </div>
+            </div>
+            <div class="cupos-input">
+              <label>Cupos</label>
+              <input 
+                type="number" 
+                min="0" 
+                max="99"
+                [value]="programaSolicitado.cupos"
+                (input)="onCuposChange(i, $event)"
+                (change)="onCuposChange(i, $event)"
+                placeholder="0">
+            </div>
+          </div>
+        </div>
+        
+        <div class="total-cupos">
+          <strong>TOTAL CUPOS DISPONIBLES: {{ totalCupos }}</strong>
+        </div>
+      </div>
+
+      <!-- Observaciones Section -->
+      <h3 class="section-title">Observaciones</h3>
+      <div class="observaciones-section">
+        <textarea 
+          formControlName="observaciones" 
+          class="observaciones"
+          placeholder="Ingrese observaciones adicionales...">
+        </textarea>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button type="submit" class="btn-guardar" [disabled]="empresaForm.invalid || isLoading">
+          {{ isLoading ? 'Guardando...' : 'Guardar' }}
+        </button>
+        <button type="button" class="btn-cancelar" (click)="cancelar()" [disabled]="isLoading">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

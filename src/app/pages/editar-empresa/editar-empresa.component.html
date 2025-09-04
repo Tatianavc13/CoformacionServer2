@@ -1,0 +1,220 @@
+<!-- Loading indicator -->
+<div *ngIf="isLoading" class="loading-container">
+  <p>Cargando información de la empresa...</p>
+</div>
+
+<!-- Error message -->
+<div *ngIf="error" class="error-container">
+  <p>{{ error }}</p>
+  <button (click)="refreshData()" *ngIf="empresaId">Reintentar</button>
+</div>
+
+<!-- Success message -->
+<div *ngIf="successMessage" class="success-container">
+  <p>{{ successMessage }}</p>
+</div>
+
+<div class="container" *ngIf="!isLoading && !error && empresa">
+  <h2 class="main-title">Editar Empresa</h2>
+
+  <div class="form-container">
+    <form (ngSubmit)="guardarCambios()" #empresaForm="ngForm">
+      <!-- Company Basic Information -->
+      <div class="form-section">
+        <h3 class="section-title">Información Básica</h3>
+        <div class="company-id">
+          <strong>ID Empresa: {{ empresa.empresa_id }}</strong>
+        </div>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nombre de la Empresa *</label>
+            <input type="text" 
+                   [(ngModel)]="empresa.nombre_comercial" 
+                   name="nombre"
+                   placeholder="Ingrese nombre de la empresa"
+                   required
+                   #nombre="ngModel"
+                   class="form-control"
+                   [class.invalid]="nombre.invalid && nombre.touched">
+            <div *ngIf="nombre.invalid && nombre.touched" class="error-message">
+              El nombre de la empresa es obligatorio
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>NIT *</label>
+            <input type="text" 
+                   [(ngModel)]="empresa.nit" 
+                   name="nit"
+                   placeholder="Ingrese NIT de la empresa"
+                   required
+                   #nit="ngModel"
+                   class="form-control"
+                   [class.invalid]="nit.invalid && nit.touched">
+            <div *ngIf="nit.invalid && nit.touched" class="error-message">
+              El NIT es obligatorio
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Sector Económico</label>
+            <select [(ngModel)]="empresa.sector" 
+                    name="sector"
+                    class="form-control">
+              <option [value]="null">Sin sector asignado</option>
+              <option *ngFor="let sector of sectoresEconomicos" [value]="sector.sector_id">
+                {{ sector.nombre }}
+              </option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Tamaño de Empresa</label>
+            <select [(ngModel)]="empresa.tamano" 
+                    name="tamano"
+                    class="form-control">
+              <option [value]="null">Sin tamaño asignado</option>
+              <option *ngFor="let tamano of tamanosEmpresa" [value]="tamano.tamano_id">
+                {{ tamano.nombre }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Information Section -->
+      <div class="form-section">
+        <div class="section-header">
+          <h3 class="section-title">Información de Contacto</h3>
+          <button type="button" 
+                  class="toggle-button" 
+                  (click)="toggleContactForm()">
+            {{ showContactForm ? 'Ocultar' : 'Mostrar' }} Formulario de Contacto
+          </button>
+        </div>
+        
+        <div *ngIf="!showContactForm && contactoPrincipal.nombre" class="contact-preview">
+          <p><strong>Contacto Principal:</strong> {{ contactoPrincipal.nombre }}</p>
+          <p><strong>Email:</strong> {{ contactoPrincipal.email }}</p>
+          <p><strong>Teléfono:</strong> {{ contactoPrincipal.telefono }}</p>
+        </div>
+        
+        <div *ngIf="showContactForm" class="contact-form">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nombre del Contacto</label>
+              <input type="text" 
+                     [(ngModel)]="contactoPrincipal.nombre" 
+                     name="contactoNombre"
+                     placeholder="Ingrese nombre del contacto"
+                     class="form-control">
+            </div>
+            
+            <div class="form-group">
+              <label>Correo Electrónico</label>
+              <input type="email" 
+                     [(ngModel)]="contactoPrincipal.email" 
+                     name="contactoCorreo"
+                     placeholder="Ingrese correo del contacto"
+                     class="form-control">
+            </div>
+            
+            <div class="form-group">
+              <label>Teléfono</label>
+              <input type="tel" 
+                     [(ngModel)]="contactoPrincipal.telefono" 
+                     name="contactoTelefono"
+                     placeholder="Ingrese teléfono del contacto"
+                     class="form-control">
+            </div>
+            
+            <div class="form-group">
+              <label>Tipo de Contacto</label>
+              <select [(ngModel)]="contactoPrincipal.tipo" 
+                      name="tipoContacto"
+                      class="form-control">
+                <option [value]="null">Sin tipo asignado</option>
+                <option *ngFor="let tipo of tiposContacto" [value]="tipo.tipo_id">
+                  {{ tipo.nombre }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Current Data Display -->
+      <div class="form-section">
+        <h3 class="section-title">Información Actual</h3>
+        <div class="current-data">
+          <div class="data-item">
+            <label>Sector Actual:</label>
+            <span>{{ getSectorNombre(empresa.sector) }}</span>
+          </div>
+          <div class="data-item">
+            <label>Tamaño Actual:</label>
+            <span>{{ getTamanoDescripcion(empresa.tamano) }}</span>
+          </div>
+          <div class="data-item" *ngIf="contactoPrincipal.nombre">
+            <label>Contacto Principal:</label>
+            <span>{{ contactoPrincipal.nombre }} ({{ contactoPrincipal.email }})</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Status -->
+      <div class="form-status" *ngIf="!isValidEmpresaForm() || hasAnyChanges()">
+        <div *ngIf="!isValidEmpresaForm()" class="validation-warning">
+          ⚠️ Complete todos los campos obligatorios (*)
+        </div>
+        <div *ngIf="hasEmpresaChanges() && isValidEmpresaForm()" class="changes-detected">
+          📝 Se detectaron cambios en la información de la empresa
+        </div>
+        <div *ngIf="hasContactoChanges() && showContactForm" class="changes-detected">
+          📞 Se detectaron cambios en la información de contacto
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button type="submit" 
+                class="btn-guardar" 
+                [disabled]="isSaving || !isValidEmpresaForm()"
+                [class.saving]="isSaving">
+          {{ isSaving ? 'Guardando...' : 'Guardar Cambios' }}
+        </button>
+        <button type="button" 
+                class="btn-reset" 
+                (click)="resetForm()"
+                [disabled]="isSaving || !hasAnyChanges()">
+          Resetear
+        </button>
+        <button type="button" 
+                class="btn-cancelar" 
+                (click)="cancelar()"
+                [disabled]="isSaving">
+          Cancelar
+        </button>
+      </div>
+    </form>
+
+    <!-- Additional Actions -->
+    <div class="additional-actions">
+      <h3 class="section-title">Acciones Adicionales</h3>
+      <div class="action-buttons-grid">
+        <button class="action-button" (click)="navigateToInformacionEmpresa()">
+          Ver Información Completa
+        </button>
+        <button class="action-button" (click)="navigateToPublicarOferta()">
+          Publicar Nueva Oferta
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- No data message -->
+<div *ngIf="!isLoading && !error && !empresa" class="no-data-container">
+  <p>No se encontró información de la empresa para editar.</p>
+</div>

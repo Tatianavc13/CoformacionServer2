@@ -1,0 +1,45 @@
+<div class="container mt-4">
+  <h2>Gestión de Coformación</h2>
+  
+  <div class="mb-3">
+    <button class="btn btn-primary" routerLink="/coformacion/nuevo">
+      <i class="fas fa-plus"></i> Nuevo Registro
+    </button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre Completo</th>
+          <th>Identificación</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let coformacion of coformaciones">
+          <td>{{coformacion.id}}</td>
+          <td>{{coformacion.nombre_completo}}</td>
+          <td>{{coformacion.identificacion}}</td>
+          <td>{{coformacion.rol}}</td>
+          <td>
+            <span class="badge" [ngClass]="coformacion.estado ? 'bg-success' : 'bg-danger'">
+              {{coformacion.estado ? 'Activo' : 'Inactivo'}}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-info me-2" [routerLink]="['/coformacion/editar', coformacion.id]">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-sm btn-danger" (click)="deleteCoformacion(coformacion.id)">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div> 

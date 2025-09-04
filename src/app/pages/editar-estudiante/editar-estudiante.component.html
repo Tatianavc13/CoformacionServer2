@@ -1,0 +1,238 @@
+<!-- Black Menu Bar -->
+<nav class="black-menu">
+    <ul>
+        <li><a href="/historial-coformacion" (click)="navigateToHistorialCoformacion()">Historial Coformación</a></li>
+        <li><a href="/perfil-estudiante" (click)="navigateToPerfilEstudiante()" class="active">Mi Información</a></li>
+    </ul>
+</nav>
+
+<!-- Loading indicator -->
+<div *ngIf="isLoading" class="loading-container">
+    <p>Cargando información del estudiante...</p>
+</div>
+
+<!-- Error message -->
+<div *ngIf="error" class="error-container">
+    <p>{{ error }}</p>
+    <button (click)="refreshData()" *ngIf="estudianteId">Reintentar</button>
+</div>
+
+<!-- Success message -->
+<div *ngIf="successMessage" class="success-container">
+    <p>{{ successMessage }}</p>
+</div>
+
+<!-- Main Content -->
+<div class="edit-container" *ngIf="!isLoading && !error && estudiante">
+    <h1 class="page-title">Editar Información del Estudiante</h1>
+    
+    <form (ngSubmit)="onSave()" #studentForm="ngForm">
+        <!-- Personal Information Section -->
+        <section class="info-section">
+            <h2>Información Personal</h2>
+            <div class="info-grid">
+                <div class="profile-image">
+                    <img src="assets/userLogo.png" alt="Foto de perfil">
+                    <div class="profile-code">
+                        <span>ID Estudiante:</span>
+                        <strong>{{ estudiante.estudiante_id }}</strong>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field full-width">
+                        <label>Nombre Completo *</label>
+                        <input type="text" 
+                               [(ngModel)]="estudiante.nombre_completo" 
+                               name="nombre_completo"
+                               placeholder="Ingrese nombre completo"
+                               required
+                               #nombreCompleto="ngModel"
+                               class="form-control"
+                               [class.invalid]="nombreCompleto.invalid && nombreCompleto.touched">
+                        <div *ngIf="nombreCompleto.invalid && nombreCompleto.touched" class="error-message">
+                            El nombre completo es obligatorio
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label>Tipo de Documento *</label>
+                        <select [(ngModel)]="estudiante.tipo_documento" 
+                                name="tipoDocumento"
+                                required
+                                #tipoDocumento="ngModel"
+                                class="form-control"
+                                [class.invalid]="tipoDocumento.invalid && tipoDocumento.touched">
+                            <option value="">Seleccione tipo de documento</option>
+                            <option value="CC">Cédula de Ciudadanía</option>
+                            <option value="CE">Cédula de Extranjería</option>
+                            <option value="PAS">Pasaporte</option>
+                            <option value="TI">Tarjeta de Identidad</option>
+                        </select>
+                        <div *ngIf="tipoDocumento.invalid && tipoDocumento.touched" class="error-message">
+                            Debe seleccionar un tipo de documento
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label>Número de Identificación *</label>
+                        <input type="text" 
+                               [(ngModel)]="estudiante.numero_documento" 
+                               name="numeroDocumento"
+                               placeholder="Ingrese número de documento"
+                               required
+                               #numeroDocumento="ngModel"
+                               class="form-control"
+                               [class.invalid]="numeroDocumento.invalid && numeroDocumento.touched">
+                        <div *ngIf="numeroDocumento.invalid && numeroDocumento.touched" class="error-message">
+                            El número de documento es obligatorio
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label>Correo Institucional *</label>
+                        <input type="email" 
+                               [(ngModel)]="estudiante.email_institucional" 
+                               name="email_institucional"
+                               placeholder="Ingrese correo institucional"
+                               required
+                               email
+                               #emailInstitucional="ngModel"
+                               class="form-control"
+                               [class.invalid]="emailInstitucional.invalid && emailInstitucional.touched">
+                        <div *ngIf="emailInstitucional.invalid && emailInstitucional.touched" class="error-message">
+                            <span *ngIf="emailInstitucional.errors?.['required']">El correo institucional es obligatorio</span>
+                            <span *ngIf="emailInstitucional.errors?.['email']">El formato del correo no es válido</span>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label>Teléfono</label>
+                        <input type="tel" 
+                               [(ngModel)]="estudiante.telefono" 
+                               name="telefono"
+                               placeholder="Ingrese teléfono (opcional)"
+                               class="form-control">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Academic Information Section -->
+        <section class="info-section">
+            <h2>Información Académica</h2>
+            <div class="info-grid">
+                <div class="form-row">
+                    <div class="form-field">
+                        <label>Programa *</label>
+                        <select [(ngModel)]="estudiante.programa_id" 
+                                name="programa_id"
+                                required
+                                #programa="ngModel"
+                                class="form-control"
+                                [class.invalid]="programa.invalid && programa.touched">
+                            <option value="0">Seleccione un programa</option>
+                            <option *ngFor="let prog of programas" [value]="prog.programa_id">
+                                {{ prog.nombre }} - {{ getFacultadNombre(prog.programa_id) }}
+                            </option>
+                        </select>
+                        <div *ngIf="programa.invalid && programa.touched" class="error-message">
+                            Debe seleccionar un programa
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label>Promoción</label>
+                        <select [(ngModel)]="estudiante.promocion_id" 
+                                name="promocion_id"
+                                class="form-control">
+                            <option [value]="null">Sin promoción asignada</option>
+                            <option *ngFor="let promo of promociones" [value]="promo.promocion_id">
+                                {{ promo.descripcion }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label>Nivel de Inglés</label>
+                        <select [(ngModel)]="estudiante.nivel_ingles_id" 
+                                name="nivelInglesId"
+                                class="form-control">
+                            <option [value]="null">Sin nivel asignado</option>
+                            <option *ngFor="let nivel of nivelesIngles" [value]="nivel.nivel_id">
+                                {{ nivel.nombre }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Estado de Cartera</label>
+                        <select [(ngModel)]="estudiante.estado_cartera_id" 
+                                name="estadoCarteraId"
+                                class="form-control">
+                            <option [value]="null">Sin estado asignado</option>
+                            <option *ngFor="let estado of estadosCartera" [value]="estado.estado_id">
+                                {{ estado.nombre }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label>Fecha de Ingreso</label>
+                        <input type="text" 
+                               [value]="estudiante.fecha_ingreso | date:'dd/MM/yyyy'"
+                               readonly
+                               class="form-control readonly">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Process Section Info -->
+        <section class="info-section">
+            <h2>Proceso de Coformación</h2>
+            <div class="process-info">
+                <p>Para editar información del proceso de coformación, use el botón correspondiente.</p>
+                <button type="button" class="process-button" (click)="navigateToProcesoCoformacion()">
+                    Editar Proceso de Coformación
+                </button>
+            </div>
+        </section>
+
+        <!-- Form Status -->
+        <div class="form-status" *ngIf="!isValidForm() || hasChanges()">
+            <div *ngIf="!isValidForm()" class="validation-warning">
+                ⚠️ Complete todos los campos obligatorios (*)
+            </div>
+            <div *ngIf="hasChanges() && isValidForm()" class="changes-detected">
+                📝 Se detectaron cambios en el formulario
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button type="submit" 
+                    class="save-button" 
+                    [disabled]="isSaving || !isValidForm()"
+                    [class.saving]="isSaving">
+                {{ isSaving ? 'Guardando...' : 'Guardar Cambios' }}
+            </button>
+            <button type="button" 
+                    class="reset-button" 
+                    (click)="resetForm()"
+                    [disabled]="isSaving || !hasChanges()">
+                Resetear
+            </button>
+            <button type="button" 
+                    class="cancel-button" 
+                    (click)="onCancel()"
+                    [disabled]="isSaving">
+                Cancelar
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- No data message -->
+<div *ngIf="!isLoading && !error && !estudiante" class="no-data-container">
+    <p>No se encontró información del estudiante para editar.</p>
+</div>

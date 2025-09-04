@@ -1,0 +1,370 @@
+/* Estilos generales del cuerpo y fuente */
+body {
+    font-family: 'Inter', sans-serif; /* Asumiendo que Inter es la fuente deseada */
+    background-color: #f0f2f5; /* Un fondo gris claro para la página */
+    margin: 0;
+    padding: 0;
+}
+
+/* Black Menu Bar Styles */
+.black-menu {
+    background-color: #000;
+    padding: 1rem 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: flex-end; /* Alinea los elementos a la derecha */
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sutil sombra para profundidad */
+}
+
+.black-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 1.5rem; /* Espacio entre los elementos del menú */
+}
+
+.black-menu a {
+    color: #fff; /* Texto blanco para el menú */
+    text-decoration: none;
+    font-size: 0.95rem; /* Ajuste del tamaño de la fuente */
+    font-weight: 500; /* Un poco más de grosor para el texto */
+    padding: 0.5rem 1rem;
+    border-radius: 4px; /* Bordes ligeramente redondeados para los enlaces */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.black-menu a:hover {
+    background-color: #333; /* Fondo más oscuro al pasar el ratón */
+    color: #fff;
+}
+
+.black-menu a.active {
+    background-color: #b71c1c; /* Color rojo para el elemento activo, como en la imagen de "Cerrar Sesión" */
+    color: #fff;
+    font-weight: 600; /* Mayor grosor para el elemento activo */
+}
+
+/* Loading indicator */
+.loading-container, .error-container, .no-data-container {
+    text-align: center;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 3rem auto;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.error-container p, .no-data-container p {
+    margin-bottom: 1rem;
+}
+
+.error-container button, .no-data-container button {
+    background-color: #1a237e;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.error-container button:hover, .no-data-container button:hover {
+    background-color: #0d1259;
+}
+
+
+/* Main Content Container Styles */
+.profile-container {
+    max-width: 1000px; /* Ajustado para que se vea más compacto como en la imagen */
+    margin: 2rem auto; /* Centrado y con margen superior/inferior */
+    padding: 0 1.5rem; /* Padding a los lados */
+}
+
+/* Section Styles */
+.info-section {
+    background: #fff; /* Fondo blanco para las secciones */
+    border-radius: 8px; /* Bordes redondeados */
+    padding: 2rem;
+    margin-bottom: 1.5rem; /* Espacio entre secciones */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Sombra más pronunciada para el efecto de "tarjeta" */
+    border: 1px solid #e0e0e0; /* Borde sutil */
+}
+
+.info-section h2 {
+    color: #1a237e; /* Azul oscuro para los títulos */
+    margin-bottom: 1.8rem; /* Más espacio debajo del título */
+    font-size: 1.7rem; /* Tamaño de fuente más grande para los títulos */
+    font-weight: 600; /* Títulos más gruesos */
+    text-align: center; /* Centrar los títulos de sección */
+    border-bottom: none; /* Eliminar el borde inferior que tenías */
+    padding-bottom: 0;
+    position: relative; /* Para el efecto de línea debajo del título si se desea */
+}
+
+/* Opcional: una línea más sutil bajo el título */
+.info-section h2::after {
+    content: '';
+    display: block;
+    width: 60px; /* Ancho de la línea */
+    height: 3px; /* Grosor de la línea */
+    background-color: #1a237e; /* Color de la línea */
+    margin: 0.5rem auto 0; /* Centrar la línea y espacio */
+    border-radius: 2px;
+}
+
+
+/* Grid Layout */
+.info-grid {
+    display: grid;
+    gap: 1rem 2rem; /* Espacio vertical y horizontal entre los campos */
+    grid-template-columns: 1fr; /* Por defecto, una columna */
+}
+
+.info-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Ajuste de columnas para que los campos sean más anchos */
+    gap: 1.5rem; /* Espacio entre los elementos de la fila */
+}
+
+/* Field Styles */
+.info-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem; /* Menos espacio entre label y value */
+}
+
+.info-field label {
+    color: #555; /* Color más oscuro para las etiquetas */
+    font-size: 0.85rem; /* Tamaño de fuente ligeramente más pequeño para las etiquetas */
+    font-weight: 500; /* Un poco más de grosor */
+    text-transform: uppercase; /* Etiquetas en mayúsculas */
+}
+
+.info-value {
+    padding: 0.85rem 1rem; /* Más padding para los valores */
+    background: #f8f9fa; /* Un gris muy claro para el fondo del valor */
+    border-radius: 6px; /* Bordes más redondeados */
+    min-height: 2.8rem; /* Altura mínima para los campos */
+    display: flex; /* Para centrar verticalmente el texto si es corto */
+    align-items: center;
+    color: #333; /* Color oscuro para el texto del valor */
+    font-size: 1rem;
+    border: 1px solid #e9ecef; /* Borde sutil para los campos */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05); /* Sutil sombra interna */
+}
+
+.info-field.full-width {
+    grid-column: 1 / -1; /* Ocupa todo el ancho en el grid */
+}
+
+/* Profile Image Section */
+.profile-image {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem; /* Espacio entre la imagen y el código */
+    margin-bottom: 2rem; /* Más espacio debajo de la sección de la imagen */
+    padding-bottom: 1.5rem;
+    border-bottom: 1px dashed #e0e0e0; /* Línea discontinua debajo de la imagen */
+}
+
+.profile-image img {
+    width: 140px; /* Imagen un poco más grande */
+    height: 140px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #1a237e; /* Borde más grueso y del color principal */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Sombra para la imagen */
+}
+
+.profile-code {
+    text-align: center;
+    padding: 0.6rem 1.2rem;
+    background-color: #e3f2fd; /* Un azul muy claro para el fondo del ID */
+    border-radius: 20px; /* Pill shape */
+    font-size: 0.9rem; /* Tamaño de fuente ligeramente más pequeño */
+    font-weight: 500;
+    color: #0d47a1; /* Azul oscuro para el texto del ID */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.profile-code span {
+    color: #424242; /* Color más oscuro para el texto "ID Estudiante:" */
+    font-weight: 400;
+}
+
+.profile-code strong {
+    font-size: 1rem; /* Tamaño de fuente del ID un poco más grande */
+    color: #1a237e; /* Azul oscuro para el ID */
+}
+
+/* No process information */
+.no-process-info {
+    text-align: center;
+    padding: 1.5rem;
+    background-color: #fff3e0; /* Fondo naranja claro para la alerta */
+    border: 1px solid #ffcc80; /* Borde naranja */
+    border-radius: 8px;
+    color: #e65100; /* Texto naranja oscuro */
+    margin-top: 1.5rem;
+}
+
+.no-process-info p {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.create-process-btn {
+    background-color: #4caf50; /* Verde para el botón de crear */
+    color: white;
+    padding: 12px 25px; /* Más padding para que sea más grande */
+    border-radius: 25px; /* Bordes más redondeados */
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0, 76, 0, 0.2); /* Sombra para el botón */
+}
+
+.create-process-btn:hover {
+    background-color: #388e3c;
+    transform: translateY(-2px); /* Pequeño efecto al pasar el ratón */
+}
+
+/* Actions Section */
+.actions-section {
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 1.5rem;
+    border: 1px solid #e0e0e0;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: center; /* Centrar los botones */
+    gap: 1.5rem; /* Espacio entre botones */
+    flex-wrap: wrap; /* Permite que los botones se envuelvan en pantallas pequeñas */
+}
+
+.primary-btn, .refresh-btn {
+    padding: 12px 25px; /* Más padding para botones */
+    border-radius: 25px; /* Bordes muy redondeados */
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    text-transform: uppercase; /* Texto en mayúsculas */
+    letter-spacing: 0.5px; /* Pequeño espaciado entre letras */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra para los botones */
+}
+
+.primary-btn {
+    background-color: #1a237e; /* Azul principal */
+    color: white;
+}
+
+.primary-btn:hover {
+    background-color: #0d1259;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.refresh-btn {
+    background-color: #d32f2f; /* Rojo para el botón de actualizar/reintentar */
+    color: white;
+}
+
+.refresh-btn:hover {
+    background-color: #9a0007;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .profile-container {
+        padding: 0 1rem;
+    }
+
+    .info-section {
+        padding: 1.5rem;
+    }
+
+    .info-row {
+        grid-template-columns: 1fr; /* Una columna en pantallas pequeñas */
+        gap: 1rem; /* Menos espacio entre campos */
+    }
+
+    .info-section h2 {
+        font-size: 1.4rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .info-section h2::after {
+        width: 40px;
+    }
+
+    .profile-image img {
+        width: 100px;
+        height: 100px;
+    }
+
+    .profile-code {
+        font-size: 0.85rem;
+    }
+
+    .profile-code strong {
+        font-size: 0.95rem;
+    }
+
+    .black-menu ul {
+        gap: 1rem;
+    }
+
+    .black-menu a {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.8rem;
+    }
+
+    .action-buttons {
+        flex-direction: column; /* Botones apilados en pantallas pequeñas */
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-container {
+        padding: 0 0.5rem;
+    }
+
+    .info-section {
+        padding: 1rem;
+    }
+
+    .info-field label {
+        font-size: 0.8rem;
+    }
+
+    .info-value {
+        font-size: 0.9rem;
+        padding: 0.6rem 0.8rem;
+        min-height: 2.5rem;
+    }
+
+    .primary-btn, .refresh-btn, .create-process-btn {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+}

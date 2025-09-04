@@ -1,0 +1,174 @@
+<!-- Black Menu Bar -->
+<nav class="black-menu">
+    <ul>
+        <li><a href="/historial-coformacion" class="active" (click)="navigateToHistorialCoformacion()">Historial Coformación</a></li>
+    </ul>
+</nav>
+
+<!-- Loading indicator -->
+<div *ngIf="isLoading" class="loading-container">
+    <p>Cargando información del estudiante...</p>
+</div>
+
+<!-- Error message -->
+<div *ngIf="error" class="error-container">
+    <p>{{ error }}</p>
+    <button (click)="refreshData()">Reintentar</button>
+</div>
+
+<!-- Main Content -->
+<div class="profile-container" *ngIf="!isLoading && !error && estudiante">
+    <!-- Personal Information Section -->
+    <section class="info-section">
+        <h2>Información Personal</h2>
+        <div class="info-grid">
+            <div class="profile-image">
+                <img src="assets/userLogo.png" alt="Foto de perfil">
+                <div class="profile-code">
+                    <span>ID Estudiante:</span>
+                    <strong>{{ estudiante.estudiante_id }}</strong>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-field full-width">
+                    <label>Nombre Completo</label>
+                    <div class="info-value">{{ estudiante.nombre_completo }}</div>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-field">
+                    <label>Tipo de Documento</label>
+                    <div class="info-value">{{ getTipoDocumentoNombre() }}</div>
+                </div>
+                <div class="info-field">
+                    <label>Número de Identificación</label> 
+                    <div class="info-value">{{ estudiante.numero_documento }}</div>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-field">
+                    <label>Correo Institucional</label>
+                    <div class="info-value">{{ estudiante.email_institucional }}</div>
+                </div>
+                <div class="info-field">
+                    <label>Teléfono</label>
+                    <div class="info-value">{{ estudiante.telefono || 'No registrado' }}</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Academic Information Section -->
+    <section class="info-section">
+        <h2>Información Académica</h2>
+        <div class="info-grid">
+            <div class="info-row">
+                <div class="info-field">
+                    <label>Programa</label>
+                    <div class="info-value">{{ getProgramaNombre() }}</div>
+                </div>
+                <div class="info-field">
+                    <label>Facultad</label>
+                    <div class="info-value">{{ getFacultadNombre() }}</div>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-field">
+                    <label>Promoción</label>
+                    <div class="info-value">{{ getPromocionNombre() }}</div>
+                </div>
+                <div class="info-field">
+                    <label>Nivel de Inglés</label>
+                    <div class="info-value">{{ getNivelInglesNombre() }}</div>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-field">
+                    <label>Estado de Cartera</label>
+                    <div class="info-value">{{ getEstadoCarteraNombre() }}</div>
+                </div>
+                <div class="info-field">
+                    <label>Fecha de Ingreso</label>
+                    <div class="info-value">{{ estudiante.fecha_ingreso | date:'dd/MM/yyyy' }}</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Coformation Process Section -->
+    <section class="info-section">
+        <h2>Proceso de Coformación</h2>
+        <div class="info-grid" *ngIf="procesoCoformacion; else noProcess">
+            <div class="info-row">
+                <div class="info-field">
+                    <label>Estado del Proceso</label>
+                    <div class="info-value">{{ getEstadoProcesoNombre() }}</div>
+                </div>
+                <div class="info-field">
+                    <label>Fecha de Inicio</label>
+                    <div class="info-value">{{ getFechaInicioFormateada() | date:'dd/MM/yyyy' }}</div>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-field">
+                    <label>Empresa</label>
+                    <div class="info-value">{{ getEmpresaNombre() }}</div>
+                </div>
+                <div class="info-field">
+                    <label>Fecha de Fin</label>
+                    <div class="info-value">{{ getFechaFinFormateada() === 'En curso' ? 'En curso' : (procesoCoformacion.fecha_fin | date:'dd/MM/yyyy') }}</div>
+                </div>
+            </div>
+            <div class="info-row" *ngIf="procesoCoformacion.observaciones">
+                <div class="info-field full-width">
+                    <label>Observaciones</label>
+                    <div class="info-value">{{ procesoCoformacion.observaciones }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <ng-template #noProcess>
+            <div class="no-process-info">
+                <p>No hay proceso de coformación activo para este estudiante.</p>
+                <button class="create-process-btn" (click)="navigateToCreateProcess()">
+                    Crear Proceso de Coformación
+                </button>
+            </div>
+        </ng-template>
+    </section>
+
+    <!-- Company Information Section (if exists) -->
+    <section class="info-section" *ngIf="empresa">
+        <h2>Información de la Empresa</h2>
+        <div class="info-grid">
+            <div class="info-row">
+                <div class="info-field">
+                    <label>Nombre de la Empresa</label>
+                    <div class="info-value">{{ empresa.nombre_comercial }}</div>
+                </div>
+                <div class="info-field">
+                    <label>NIT</label>
+                    <div class="info-value">{{ empresa.nit }}</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Actions Section -->
+    <section class="actions-section">
+        <div class="action-buttons">
+            <button class="primary-btn" (click)="navigateToEditarEstudiante()">
+                Editar Información
+            </button>
+            <button class="refresh-btn" (click)="refreshData()">
+                Actualizar Datos
+            </button>
+        </div>
+    </section>
+</div>
+
+<!-- No data message -->
+<div *ngIf="!isLoading && !error && !estudiante" class="no-data-container">
+    <p>No se encontró información del estudiante.</p>
+    <button (click)="refreshData()">Reintentar</button>
+</div>

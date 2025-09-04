@@ -1,0 +1,126 @@
+<!-- Main Content -->
+<main class="main-content">
+    <div class="container">
+        <div class="header-section">
+            <button class="home-button" (click)="volverAlHome()" title="Volver al Home">
+                ← Volver al Home
+            </button>
+            <h1 class="main-title">Consulta de Empresas</h1>
+            <button class="add-button" (click)="navegarAgregarEmpresa()">
+                <span class="add-icon">+</span>
+                Agregar Empresa
+            </button>
+        </div>
+
+        <div class="search-container">
+            <div class="filter-icon" (click)="toggleFilterModal()">
+                <img src="assets/filter.svg" alt="Filtro">
+            </div>
+            <input type="text" class="search-input" placeholder="Buscar empresa..." 
+                   [(ngModel)]="searchTerm" (input)="onSearch(searchTerm)">
+            <button class="search-button" (click)="refreshData()">
+                <img src="assets/search.svg" alt="Buscar">
+            </button>
+        </div>
+
+        <!-- Loading indicator -->
+        <div *ngIf="isLoading" class="loading-container">
+            <p>Cargando empresas...</p>
+        </div>
+
+        <!-- Error message -->
+        <div *ngIf="error" class="error-container">
+            <p>{{ error }}</p>
+            <button (click)="refreshData()">Reintentar</button>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container" *ngIf="!isLoading && !error">
+            <div class="results-info">
+                <p>Mostrando {{ empresasFiltradas.length }} de {{ empresas.length }} empresas</p>
+                <button *ngIf="filtros.sector_id || filtros.tamano_id || filtros.nombre" 
+                        (click)="clearFilters()" class="clear-filters-btn">
+                    Limpiar filtros
+                </button>
+            </div>
+            
+            <table class="companies-table">
+                <thead>
+                    <tr>
+                        <th>NIT</th>
+                        <th>EMPRESA</th>
+                        <th>SECTOR ECONÓMICO</th>
+                        <th>TAMAÑO</th>
+                        <th>CONTACTOS</th>
+                        <th>ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let empresa of empresasFiltradas">
+                        <td>{{ empresa.nit }}</td>
+                        <td>{{ empresa.nombre_comercial }}</td>
+                        <td>{{ getSectorNombre(empresa.sector) }}</td>
+                        <td>{{ getTamanoNombre(empresa.tamano) }}</td>
+                        <td>{{ getContactosCount(empresa.empresa_id) }}</td>
+                        <td>
+                            <button class="details-button" (click)="goToResumenEmpresa(empresa)">VER DETALLES</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- No results message -->
+            <div *ngIf="empresasFiltradas.length === 0 && empresas.length > 0" class="no-results">
+                <p>No se encontraron empresas con los criterios de búsqueda especificados.</p>
+            </div>
+
+            <!-- No data message -->
+            <div *ngIf="empresas.length === 0" class="no-data">
+                <p>No hay empresas registradas en el sistema.</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Filter Modal -->
+<div class="modal-overlay" *ngIf="showFilterModal" (click)="toggleFilterModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <h2 class="modal-title">FILTRAR EMPRESAS</h2>
+        
+        <div class="filter-form">
+            <div class="filter-group">
+                <label>SECTOR ECONÓMICO</label>
+                <select class="filter-input" [(ngModel)]="filtros.sector_id" 
+                        (change)="onFilterChange('sector', $event)">
+                    <option [value]="null">Todos los sectores</option>
+                    <option *ngFor="let sector of sectoresEconomicos" [value]="sector.sector_id">
+                        {{ sector.nombre }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>TAMAÑO DE EMPRESA</label>
+                <select class="filter-input" [(ngModel)]="filtros.tamano_id"
+                        (change)="onFilterChange('tamano', $event)">
+                    <option [value]="null">Todos los tamaños</option>
+                    <option *ngFor="let tamano of tamanosEmpresa" [value]="tamano.tamano_id">
+                        {{ tamano.nombre }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>NOMBRE DE LA EMPRESA</label>
+                <input type="text" class="filter-input" [(ngModel)]="filtros.nombre" 
+                       placeholder="Ingrese nombre de empresa"
+                       (input)="onFilterChange('nombre', $event)">
+            </div>
+
+            <div class="modal-buttons">
+                <button class="apply-button" (click)="applyFilters()">APLICAR</button>
+                <button class="cancel-button" (click)="cancelarFiltros()">CANCELAR</button>
+            </div>
+        </div>
+    </div>
+</div>

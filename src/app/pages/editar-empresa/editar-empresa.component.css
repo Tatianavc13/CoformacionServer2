@@ -1,0 +1,249 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.main-title {
+  color: #333;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.form-container {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Profile Image Section */
+.profile-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.profile-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background-color: #f5f5f5;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+
+.upload-button {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.profile-image:hover .upload-button {
+  opacity: 1;
+}
+
+/* Form Grid */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+label {
+  font-weight: bold;
+  color: #666;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+}
+
+input, textarea {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* File Input */
+.file-input {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.file-input input[type="text"] {
+  flex: 1;
+  background-color: #f5f5f5;
+  cursor: default;
+  min-width: 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.file-button {
+  background-color: #0066cc;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  min-width: 130px;
+  text-align: center;
+}
+
+.file-button:hover {
+  background-color: #0052a3;
+}
+
+/* Convenio Section */
+.section-title {
+  color: #0B208B;
+  margin: 30px 0 20px;
+  font-size: 1.2rem;
+}
+
+.convenio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+/* Programs Section */
+.programs-grid {
+  display: grid;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.program-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.program-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.program-icon {
+  width: 40px;
+  height: 40px;
+  background-color: #0B208B;
+  border-radius: 4px;
+}
+
+.cupos-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cupos-input input {
+  width: 80px;
+}
+
+.total-cupos {
+  text-align: right;
+  margin: 20px 0;
+  font-size: 1.1rem;
+}
+
+/* Observaciones */
+.observaciones {
+  width: 100%;
+  min-height: 100px;
+  margin-bottom: 30px;
+  resize: vertical;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.btn-guardar,
+.btn-cancelar {
+  padding: 10px 30px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.btn-guardar {
+  background-color: #0066cc;
+  color: white;
+}
+
+.btn-cancelar {
+  background-color: #EE0026;
+  color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .form-grid,
+  .convenio-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .program-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .cupos-input {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .file-input {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .file-button {
+    width: 100%;
+    min-width: auto;
+  }
+}

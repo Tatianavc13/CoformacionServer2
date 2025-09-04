@@ -1,0 +1,71 @@
+<main class="main-content">
+  <div class="container">
+    <div class="header-section">
+      <button class="home-button" (click)="volverAlHome()" title="Volver al Home">
+        ← Volver al Home
+      </button>
+      <h2 class="titulo">Ofertas Recomendadas</h2>
+      <button class="refresh-button" (click)="refrescarRecomendaciones()" title="Refrescar ofertas">
+        🔄 Refrescar
+      </button>
+    </div>
+
+    <!-- Loading indicator -->
+    <div *ngIf="loading" class="loading-container">
+      <p>⏳ Cargando ofertas recomendadas...</p>
+    </div>
+
+    <!-- Error message -->
+    <div *ngIf="error" class="error-container">
+      <p class="error-text">❌ {{ error }}</p>
+      <button (click)="refrescarRecomendaciones()" class="retry-button">
+        Reintentar
+      </button>
+    </div>
+
+    <!-- Información del estudiante -->
+    <div *ngIf="!loading && !error" class="info-section">
+      <p class="info-text">
+        📋 Mostrando ofertas compatibles para estudiantes del programa (Estudiante de referencia ID: {{ estudianteId }})
+      </p>
+    </div>
+
+    <!-- Tabla de resultados -->
+    <div class="table-container" *ngIf="!loading && !error">
+      <table class="companies-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Descripción</th>
+            <th>Modalidad</th>
+            <th>Empresa</th>
+            <th>Programa</th>
+            <th>Estudiante Recomendado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let oferta of recomendaciones">
+            <td>{{ oferta.oferta_id }}</td>
+            <td>{{ oferta.descripcion }}</td>
+            <td>{{ oferta.modalidad }}</td>
+            <td>{{ oferta.empresa_nombre }}</td>
+            <td>{{ oferta.programa_id }}</td>
+            <td>
+              <span [class]="oferta.estudiante === 'Sin asignar' ? 'sin-asignar' : 'estudiante-asignado'">
+                {{ oferta.estudiante }}
+              </span>
+            </td>
+            <td><button class="details-button">Ver más</button></td>
+          </tr>
+          <tr *ngIf="recomendaciones.length === 0">
+            <td colspan="7" class="no-results">
+              📝 No hay ofertas recomendadas actualmente para este programa.
+              <br><small>Asegúrese de que existan ofertas publicadas para su programa académico.</small>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>

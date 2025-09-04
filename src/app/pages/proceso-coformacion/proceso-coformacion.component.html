@@ -1,0 +1,142 @@
+<!-- Loading indicator -->
+<div *ngIf="isLoading" class="loading-container">
+    <p>Cargando datos del proceso de coformación...</p>
+</div>
+
+<!-- Error message -->
+<div *ngIf="error" class="error-container">
+    <p>{{ error }}</p>
+    <button (click)="refreshData()">Reintentar</button>
+</div>
+
+<div class="proceso-container" *ngIf="!isLoading && !error">
+    <h1>{{ isEditMode ? 'EDITAR' : 'CREAR' }} PROCESO DE COFORMACIÓN</h1>
+
+    <form (ngSubmit)="onSubmit()">
+        <!-- Estado Actual y Botón de Historial -->
+        <div class="header-section">
+            <div class="estado-section">
+                <label>ESTADO DEL PROCESO *</label>
+                <select [(ngModel)]="proceso.estado" name="estado" required>
+                    <option value="0">Seleccione un estado</option>
+                    <option *ngFor="let estado of estadosProceso" [value]="estado.estado_id">
+                        {{ estado.nombre }}
+                    </option>
+                </select>
+            </div>
+            <button type="button" class="historial-button" (click)="verHistorialProcesos()">
+                HISTORIAL PROCESOS DE COFORMACIÓN
+            </button>
+        </div>
+
+        <!-- Selección de Estudiante -->
+        <div class="section-title">INFORMACIÓN DEL ESTUDIANTE</div>
+        <div class="student-section">
+            <div class="form-row">
+                <div class="form-field">
+                    <label>ESTUDIANTE *</label>
+                    <select [(ngModel)]="proceso.estudiante" name="estudiante" required>
+                        <option value="0">Seleccione un estudiante</option>
+                        <option *ngFor="let estudiante of estudiantes" [value]="estudiante.estudiante_id">
+                            {{ estudiante.nombre_completo }} - {{ estudiante.numero_documento }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Selección de Empresa -->
+        <div class="section-title">INFORMACIÓN DE LA EMPRESA</div>
+        <div class="company-section">
+            <div class="form-row">
+                <div class="form-field">
+                    <label>EMPRESA *</label>
+                    <select [(ngModel)]="proceso.empresa" name="empresa" (change)="onEmpresaChange()" required>
+                        <option value="0">Seleccione una empresa</option>
+                        <option *ngFor="let empresa of empresas" [value]="empresa.empresa_id">
+                            {{ empresa.nombre_comercial }} - {{ empresa.nit }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Información del contacto si está disponible -->
+            <div *ngIf="contactoSeleccionado" class="contact-info">
+                <h4>Contacto Principal</h4>
+                <div class="form-row two-columns">
+                    <div class="form-field">
+                        <label>NOMBRE</label>
+                        <input type="text" [value]="contactoSeleccionado.nombre" readonly>
+                    </div>
+                    <div class="form-field">
+                        <label>CORREO</label>
+                        <input type="text" [value]="contactoSeleccionado.email" readonly>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label>TELÉFONO</label>
+                        <input type="text" [value]="contactoSeleccionado.telefono" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Selección de Oferta -->
+        <div class="section-title">OFERTA DE COFORMACIÓN</div>
+        <div class="offer-section">
+            <div class="form-row">
+                <div class="form-field">
+                    <label>OFERTA *</label>
+                    <select [(ngModel)]="proceso.oferta" name="oferta" required>
+                        <option value="0">Seleccione una oferta</option>
+                        <option *ngFor="let oferta of ofertasFiltradas" [value]="oferta.oferta_id">
+                            {{ oferta.descripcion }} ({{ oferta.fecha_inicio }} - {{ oferta.fecha_fin }})
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fechas del Proceso -->
+        <div class="section-title">FECHAS DEL PROCESO</div>
+        <div class="dates-section">
+            <div class="form-row two-columns">
+                <div class="form-field">
+                    <label>FECHA INICIO *</label>
+                    <input type="date" [(ngModel)]="proceso.fecha_inicio" name="fechaInicio" required>
+                </div>
+                <div class="form-field">
+                    <label>FECHA FIN</label>
+                    <input type="date" [(ngModel)]="proceso.fecha_fin" name="fechaFin">
+                </div>
+            </div>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="section-title">OBSERVACIONES</div>
+        <div class="observations-section">
+            <div class="form-row">
+                <div class="form-field">
+                    <label>OBSERVACIONES</label>
+                    <textarea [(ngModel)]="proceso.observaciones" name="observaciones" 
+                              rows="4" placeholder="Ingrese observaciones adicionales del proceso"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Validación del formulario -->
+        <div *ngIf="!isValidForm()" class="validation-info">
+            <p>Por favor complete todos los campos marcados con (*)</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button type="submit" class="guardar-button" [disabled]="isSaving || !isValidForm()">
+                {{ isSaving ? 'GUARDANDO...' : 'GUARDAR' }}
+            </button>
+            <button type="button" class="cancelar-button" (click)="cancelar()">CANCELAR</button>
+        </div>
+    </form>
+</div>
+

@@ -1,0 +1,114 @@
+<!-- Black Menu Bar -->
+<nav class="black-menu">
+    <ul>
+        <li><a href="/perfil-estudiante" (click)="navigateToPerfilEstudiante()" class="active">Mi Información</a></li>
+    </ul>
+</nav>
+
+<!-- Main Content -->
+<div class="history-container">
+    <h1>Historial de Coformación</h1>
+
+    <section class="company-section">
+        <div class="company-header">
+            <h2>NOMBRE EMPRESA</h2>
+            <div class="company-logo">
+                <img [src]="companyHistory.logo" alt="Logo empresa">
+            </div>
+        </div>
+
+        <div class="company-info-grid">
+            <div class="info-row">
+                <div class="info-field">
+                    <label>Razón Social</label>
+                    <div class="info-value">{{ companyHistory.razonSocial }}</div>
+                </div>
+                <div class="info-field">
+                    <label>Nit</label>
+                    <div class="info-value">{{ companyHistory.nit }}</div>
+                </div>
+                <div class="info-field">
+                    <label>Rut</label>
+                    <div class="info-value">{{ companyHistory.rut }}</div>
+                </div>
+                <div class="info-field">
+                    <label>Dígito Verificación</label>
+                    <div class="info-value">{{ companyHistory.digitoVerificacion }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="company-description">
+            <label>Información de la empresa</label>
+            <p>{{ companyHistory.informacionEmpresa }}</p>
+            <a href="javascript:void(0)" (click)="verMasInformacion()" class="more-info">Mas información sobre la empresa</a>
+        </div>
+
+        <div class="contract-info-grid">
+            <div class="info-row">
+                <div class="info-field">
+                    <label>Tipo de contrato:</label>
+                    <div class="info-value">{{ companyHistory.tipoContrato }}</div>
+                </div>
+                <div class="info-field">
+                    <label>Sostenimiento:</label>
+                    <div class="info-value">{{ companyHistory.sostenimiento }}</div>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-field">
+                    <label>Periodicidad de pago:</label>
+                    <div class="info-value">{{ companyHistory.periodicidadPago }}</div>
+                </div>
+                <div class="info-field">
+                    <label>Forma de pago:</label>
+                    <div class="info-value">{{ companyHistory.formaPago }}</div>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-field">
+                    <label>Días de trabajo:</label>
+                    <div class="info-value">{{ companyHistory.diasTrabajo }}</div>
+                </div>
+                <div class="info-field">
+                    <label>Horario:</label>
+                    <div class="info-value">{{ companyHistory.horario }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dates-section">
+            <div class="info-row">
+                <div class="info-field">
+                    <label>Fecha Inicio:</label>
+                    <div class="info-value">{{ companyHistory.fechaInicio }}</div>
+                </div>
+                <div class="info-field">
+                    <label>Fecha Fin:</label>
+                    <div class="info-value">{{ companyHistory.fechaFin }}</div>
+                </div>
+                <div class="info-field">
+                    <label>Periodo:</label>
+                    <div class="info-value">{{ companyHistory.periodo }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="observations-section">
+            <div class="observation-field">
+                <h3>RAZON DE DESVINCULACION DE LA EMPRESA</h3>
+                <div class="observation-box">{{ companyHistory.razonDesvinculacion }}</div>
+            </div>
+
+            <div class="observation-field">
+                <h3>OBSERVACIONES DE LA EMPRESA</h3>
+                <div class="observation-box">{{ companyHistory.observacionesEmpresa }}</div>
+            </div>
+
+            <div class="observation-field">
+                <h3>OBSERVACIONES DEL ESTUDIANTE EN LA EMPRESA</h3>
+                <div class="observation-box">{{ companyHistory.observacionesEstudiante }}</div>
+            </div>
+        </div>
+    </section>
+</div>
