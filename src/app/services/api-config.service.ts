@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiConfigService {
-  private readonly baseUrl = 'http://127.0.0.1:8001/api';
-  
+  private readonly baseUrl = environment.apiUrl;
+
   constructor() { }
 
   getBaseUrl(): string {
@@ -116,4 +117,4 @@ export class ApiConfigService {
   getTiposContactoUrl(): string {
     return this.getEndpoint('tipos-contacto');
   }
-} 
+}

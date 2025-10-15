@@ -54,6 +54,8 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
+    "http://localhost:4200",
+    "http://127.0.0.1:4200",
     "http://localhost:4201",
     "http://127.0.0.1:4201",
 ]
@@ -103,9 +105,12 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'coformacion1',
         'USER': 'root',
-        'PASSWORD': '12345',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'PASSWORD': '',
+        'HOST': '127.0.0.1',
+        'PORT': '3307',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        }
     }
 }
 

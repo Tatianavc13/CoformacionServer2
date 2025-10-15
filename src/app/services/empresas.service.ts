@@ -1,16 +1,18 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { ApiConfigService } from './api-config.service';
 import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EmpresasService {
+  private apiUrl: string;
 
-  private apiUrl = 'http://127.0.0.1:8001/api/empresas/';
-
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private apiConfig: ApiConfigService) {
+    this.apiUrl = this.apiConfig.getEmpresasUrl();
+  }
 
   getAll(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl);

@@ -64,7 +64,7 @@ class Programas(models.Model):
         ('Virtual', 'Virtual'),
         ('Híbrido', 'Híbrido'),
     ]
-    
+
     NIVEL_CHOICES = [
         ('Técnico', 'Técnico'),
         ('Tecnólogo', 'Tecnólogo'),
@@ -151,19 +151,19 @@ class Estudiantes(models.Model):
         ('PAS', 'Pasaporte'),
         ('TI', 'Tarjeta de Identidad'),
     ]
-    
+
     GENERO_CHOICES = [
         ('M', 'Masculino'),
         ('F', 'Femenino'),
         ('O', 'Otro'),
     ]
-    
+
     JORNADA_CHOICES = [
         ('Diurna', 'Diurna'),
         ('Nocturna', 'Nocturna'),
         ('Mixta', 'Mixta'),
     ]
-    
+
     ESTADO_CHOICES = [
         ('Activo', 'Activo'),
         ('Inactivo', 'Inactivo'),
@@ -288,7 +288,7 @@ class OfertasEmpresas(models.Model):
         ('No', 'No'),
         ('Si', 'Si'),
     ]
-    
+
     MODALIDAD_CHOICES = [
         ('Presencial', 'Presencial'),
         ('Virtual', 'Virtual'),
@@ -313,7 +313,7 @@ class EstadoProceso(models.Model):
     nombre = models.CharField(max_length=100)
 
     class Meta:
-        db_table = 'estado_proceso'
+        db_table = 'estados_proceso'
 
 
 class ProcesoCoformacion(models.Model):

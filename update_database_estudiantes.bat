@@ -15,7 +15,7 @@ pause
 
 echo.
 echo Ejecutando script SQL...
-mysql -u root -p coformacion < backendCoformacion\agregar_estudiantes_prueba.sql
+mysql -u root -p coformacion1 < backendCoformacion\agregar_estudiantes_prueba.sql
 
 if %ERRORLEVEL% == 0 (
     echo.
@@ -42,4 +42,4 @@ if %ERRORLEVEL% == 0 (
 )
 
 echo.
-pause 
+pause

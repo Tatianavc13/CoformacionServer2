@@ -142,13 +142,19 @@ def login_universal(request):
     """
     Endpoint universal para autenticar estudiantes, empresas y usuarios de coformación
     """
+    # Normalizar entradas
     nombre_completo = request.data.get('nombre_completo')
     numero_documento = request.data.get('numero_documento')
     tipo_usuario = request.data.get('tipo_usuario')  # Puede venir o no
 
+    if isinstance(nombre_completo, str):
+        nombre_completo = nombre_completo.strip()
+    if isinstance(numero_documento, str):
+        numero_documento = numero_documento.strip()
+
     if not nombre_completo or not numero_documento:
         return Response(
-            {'error': 'Se requieren nombre completo y número de documento'}, 
+            {'error': 'Se requieren nombre completo y número de documento'},
             status=status.HTTP_400_BAD_REQUEST
         )
 
@@ -171,8 +177,10 @@ def login_universal(request):
             redirect_to = '/perfil-estudiante'
             tipo_detectado = 'estudiante'
         elif tipo_usuario == 'empresa':
+            # Intentar por nombre_comercial o razon_social
+            from django.db.models import Q
             usuario = Empresas.objects.get(
-                nombre_comercial__icontains=nombre_completo,
+                Q(nombre_comercial__icontains=nombre_completo) | Q(razon_social__icontains=nombre_completo),
                 nit=numero_documento
             )
             serializer = EmpresasSerializer(usuario)
@@ -199,16 +207,24 @@ def login_universal(request):
                     tipo_detectado = 'estudiante'
                 except Estudiantes.DoesNotExist:
                     try:
+                        from django.db.models import Q
                         usuario = Empresas.objects.get(
-                            nombre_comercial__icontains=nombre_completo,
+                            Q(nombre_comercial__icontains=nombre_completo) | Q(razon_social__icontains=nombre_completo),
                             nit=numero_documento
                         )
                         serializer = EmpresasSerializer(usuario)
                         redirect_to = '/home-empresa'
                         tipo_detectado = 'empresa'
                     except Empresas.DoesNotExist:
+                        # Información mínima para diagnóstico en desarrollo (sin exponer datos sensibles)
                         return Response(
-                            {'error': 'Credenciales incorrectas. Verifique sus datos.'}, 
+                            {
+                                'error': 'Credenciales incorrectas. Verifique sus datos.',
+                                'detalle': {
+                                    'nombre_completo': nombre_completo,
+                                    'numero_documento': numero_documento
+                                }
+                            },
                             status=status.HTTP_401_UNAUTHORIZED
                         )
 
@@ -222,7 +238,7 @@ def login_universal(request):
 
     except Exception as e:
         return Response(
-            {'error': f'Error interno del servidor: {str(e)}'}, 
+            {'error': f'Error interno del servidor: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
@@ -266,35 +282,35 @@ def recomendaciones_por_estudiante(request, estudiante_id):
     try:
         # Obtener el estudiante de referencia para conocer su programa
         estudiante_referencia = Estudiantes.objects.get(pk=estudiante_id)
-        
+
         # Buscar todas las ofertas que coincidan con el programa del estudiante de referencia
         ofertas = OfertasEmpresas.objects.filter(programa_id=estudiante_referencia.programa_id)
-        
+
         # Buscar todos los estudiantes del mismo programa que están disponibles
         estudiantes_programa = Estudiantes.objects.filter(
             programa_id=estudiante_referencia.programa_id,
             estado='Activo'  # Solo estudiantes activos
         )
-        
+
         # Crear lista de recomendaciones
         recomendaciones = []
-        
+
         for oferta in ofertas:
             # Serializar la oferta
             serializer = OfertasEmpresasSerializer(oferta)
             oferta_data = serializer.data
-            
+
             # Encontrar estudiantes compatibles para esta oferta
             # (por ahora todos los del mismo programa, pero aquí se puede agregar más lógica de matching)
             estudiantes_compatibles = estudiantes_programa
-            
+
             # Si hay estudiantes compatibles, crear una recomendación por cada uno
             if estudiantes_compatibles.exists():
                 # Para mostrar variedad, podemos rotar entre estudiantes o usar algún criterio
                 # Por ahora, asignaremos el primer estudiante disponible pero rotando
                 index = oferta.idOferta % estudiantes_compatibles.count()
                 estudiante_asignado = estudiantes_compatibles[index]
-                
+
                 oferta_data["estudiante"] = estudiante_asignado.nombre_completo
                 oferta_data["estudiante_id"] = estudiante_asignado.estudiante_id
                 recomendaciones.append(oferta_data)
@@ -303,9 +319,9 @@ def recomendaciones_por_estudiante(request, estudiante_id):
                 oferta_data["estudiante"] = "Sin asignar"
                 oferta_data["estudiante_id"] = None
                 recomendaciones.append(oferta_data)
-        
+
         return Response(recomendaciones)
-        
+
     except Estudiantes.DoesNotExist:
         return Response({'error': 'Estudiante no encontrado'}, status=404)
 
@@ -318,22 +334,22 @@ def recomendaciones_completas(request):
     try:
         # Obtener todas las ofertas activas
         ofertas = OfertasEmpresas.objects.all()
-        
+
         # Obtener todos los estudiantes activos
         estudiantes_activos = Estudiantes.objects.filter(estado='Activo')
-        
+
         recomendaciones_completas = []
-        
+
         for oferta in ofertas:
             # Serializar la oferta
             serializer = OfertasEmpresasSerializer(oferta)
             oferta_data = serializer.data
-            
+
             # Encontrar estudiantes compatibles para esta oferta
             estudiantes_compatibles = estudiantes_activos.filter(
                 programa_id=oferta.programa_id
             )
-            
+
             if estudiantes_compatibles.exists():
                 # Crear una recomendación para cada estudiante compatible
                 for i, estudiante in enumerate(estudiantes_compatibles):
@@ -348,12 +364,12 @@ def recomendaciones_completas(request):
                 oferta_data["estudiante_id"] = None
                 oferta_data["es_principal"] = True
                 recomendaciones_completas.append(oferta_data)
-        
+
         return Response({
             'total_ofertas': ofertas.count(),
             'total_estudiantes_activos': estudiantes_activos.count(),
             'recomendaciones': recomendaciones_completas
         })
-        
+
     except Exception as e:
         return Response({'error': f'Error interno: {str(e)}'}, status=500)
