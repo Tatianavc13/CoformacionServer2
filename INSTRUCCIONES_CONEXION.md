@@ -21,7 +21,8 @@ pip install django djangorestframework django-cors-headers
 
 # Ejecutar migraciones (si es necesario)
 python manage.py migrate
-
+# Activacion del entorno virtual para django 
+.\venv\Scripts\activate 
 # Iniciar el servidor
 python manage.py runserver
 ```

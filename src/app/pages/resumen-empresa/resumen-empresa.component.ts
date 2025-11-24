@@ -72,6 +72,9 @@ export class ResumenEmpresaComponent implements OnInit {
     correoAlternativo: ''
   };
 
+  empresa: Empresa | null = null;
+  logoUrl: string = 'assets/logoEmpresa.png'; // Logo predeterminado
+
   students: Student[] = [];
   
   isLoading = true;
@@ -114,8 +117,13 @@ export class ResumenEmpresaComponent implements OnInit {
       ]);
 
       if (empresa) {
+        this.empresa = empresa;
+        // Establecer logo de la empresa o usar el predeterminado
+        // this.logoUrl = empresa.logo_url || 'assets/logoEmpresa.png';  // Comentado temporalmente
+        this.logoUrl = 'assets/logoEmpresa.png';
+        
         this.populateCompanyInfo(empresa, sectores || [], tamanos || []);
-        this.populateContactInfo(contactos?.filter(c => c.empresa_id === empresaId) || []);
+        this.populateContactInfo(empresa, contactos?.filter(c => c.empresa_id === empresaId) || []);
         // TODO: Cargar estudiantes asignados a esta empresa
         this.loadStudentsForCompany(empresaId);
       } else {
@@ -151,25 +159,45 @@ export class ResumenEmpresaComponent implements OnInit {
     };
   }
 
-  private populateContactInfo(contactos: ContactoEmpresa[]) {
-    // Buscar el contacto principal
-    const contactoPrincipal = contactos.find(c => c.es_principal) || contactos[0];
-    
-    if (contactoPrincipal) {
+  private populateContactInfo(empresa: Empresa, contactos: ContactoEmpresa[]) {
+    // Priorizar información de persona de contacto de la empresa
+    if (empresa.nombre_persona_contacto_empresa) {
       this.contactInfo = {
-        responsable: contactoPrincipal.nombre || '',
+        responsable: empresa.nombre_persona_contacto_empresa || '',
         identificacion: '', // No disponible en la base de datos actual
-        cargo: contactoPrincipal.cargo || '',
-        celular: contactoPrincipal.celular || contactoPrincipal.telefono || '',
-        email: contactoPrincipal.email || '',
-        correoAlternativo: '' // Podríamos usar un segundo contacto si existe
+        cargo: empresa.cargo_persona_contacto_empresa || '',
+        celular: empresa.numero_persona_contacto_empresa || '',
+        email: empresa.email_empresa || '',
+        correoAlternativo: '' // Podríamos usar un contacto adicional si existe
       };
 
-      // Si hay más de un contacto, usar el email del segundo como alternativo
-      if (contactos.length > 1) {
-        const segundoContacto = contactos.find(c => c !== contactoPrincipal);
-        if (segundoContacto) {
-          this.contactInfo.correoAlternativo = segundoContacto.email || '';
+      // Si hay contactos adicionales, usar el email del primero como alternativo
+      if (contactos.length > 0) {
+        const contactoAdicional = contactos.find(c => c.es_principal) || contactos[0];
+        if (contactoAdicional && contactoAdicional.email) {
+          this.contactInfo.correoAlternativo = contactoAdicional.email;
+        }
+      }
+    } else {
+      // Si no hay información de contacto en la empresa, usar contactos de la tabla contactos_empresa
+      const contactoPrincipal = contactos.find(c => c.es_principal) || contactos[0];
+      
+      if (contactoPrincipal) {
+        this.contactInfo = {
+          responsable: contactoPrincipal.nombre || '',
+          identificacion: '', // No disponible en la base de datos actual
+          cargo: contactoPrincipal.cargo || '',
+          celular: contactoPrincipal.celular || contactoPrincipal.telefono || '',
+          email: contactoPrincipal.email || '',
+          correoAlternativo: '' // Podríamos usar un segundo contacto si existe
+        };
+
+        // Si hay más de un contacto, usar el email del segundo como alternativo
+        if (contactos.length > 1) {
+          const segundoContacto = contactos.find(c => c !== contactoPrincipal);
+          if (segundoContacto) {
+            this.contactInfo.correoAlternativo = segundoContacto.email || '';
+          }
         }
       }
     }

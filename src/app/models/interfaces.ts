@@ -94,9 +94,13 @@ export interface Empresa {
   ciudad: string;
   departamento: string;
   telefono?: string | null;
+  email_empresa?: string | null;
   sitio_web?: string | null;
   cuota_sena?: number | null;
   numero_empleados?: number | null;
+  nombre_persona_contacto_empresa: string;
+  numero_persona_contacto_empresa?: string | null;
+  cargo_persona_contacto_empresa: string;
   estado_convenio: EstadoConvenio;
   fecha_convenio?: string | null; // date
   convenio_url?: string | null;
@@ -108,6 +112,7 @@ export interface Empresa {
   fecha_creacion?: string;
   fecha_actualizacion?: string;
   nit?: string | null;
+  // logo_url?: string | null;  // Comentado temporalmente
 }
 
 export interface TipoContacto {

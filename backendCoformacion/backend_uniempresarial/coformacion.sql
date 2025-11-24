@@ -427,14 +427,19 @@ DROP TABLE IF EXISTS `empresas`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `empresas` (
   `empresa_id` int NOT NULL AUTO_INCREMENT,
+  `nit_empresa` varchar(20) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
   `razon_social` varchar(255) COLLATE utf8mb4_spanish_ci NOT NULL,
   `nombre_comercial` varchar(255) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
   `sector_id` int NOT NULL,
   `tamano_id` int NOT NULL,
-  `direccion` varchar(255) COLLATE utf8mb4_spanish_ci NOT NULL,
-  `ciudad` varchar(100) COLLATE utf8mb4_spanish_ci NOT NULL,
-  `departamento` varchar(100) COLLATE utf8mb4_spanish_ci NOT NULL,
-  `telefono` varchar(20) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  `direccion_empresa` varchar(255) COLLATE utf8mb4_spanish_ci NOT NULL,
+  `nombre_persona_contacto_empresa` varchar(255) COLLATE utf8mb4_spanish_ci NOT NULL,
+  `numero_persona_contacto_empresa` varchar(255) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  `ciudad_empresa` varchar(100) COLLATE utf8mb4_spanish_ci NOT NULL,
+  `departamento_empresa` varchar(100) COLLATE utf8mb4_spanish_ci NOT NULL,
+  `cargo_persona_contacto_empresa` varchar(255) COLLATE utf8mb4_spanish_ci NOT NULL,
+  `telefono_empresa` varchar(20) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  `email_empresa` varchar(255) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
   `sitio_web` varchar(255) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
   `cuota_sena` int DEFAULT NULL,
   `numero_empleados` int DEFAULT NULL,
@@ -448,7 +453,6 @@ CREATE TABLE `empresas` (
   `estado` tinyint(1) DEFAULT '1',
   `fecha_creacion` datetime DEFAULT CURRENT_TIMESTAMP,
   `fecha_actualizacion` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `nit` varchar(20) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
   PRIMARY KEY (`empresa_id`),
   KEY `tamano_id` (`tamano_id`),
   KEY `idx_empresa_sector` (`sector_id`,`estado_convenio`),
@@ -457,14 +461,109 @@ CREATE TABLE `empresas` (
   CONSTRAINT `empresas_ibfk_2` FOREIGN KEY (`tamano_id`) REFERENCES `tamanos_empresa` (`tamano_id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `acompañamiento_estudiantil_coformacion`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `acompañamiento_estudiantil_coformacion` (
+  `acompanamiento_id` INT NOT NULL AUTO_INCREMENT,
+  `estudiante_id` INT NOT NULL COMMENT 'Relación con el estudiante',
+  `proceso_id` INT DEFAULT NULL COMMENT 'Relación con el proceso de práctica específico',
+  `docente_id` INT DEFAULT NULL COMMENT 'Quién realiza el acompañamiento (Tabla docentes)',
+  `empresa_id` INT DEFAULT NULL COMMENT 'Quién realiza el acompañamiento (Tabla empresas)',
+  `nombre_tutor_empresa` varchar(255) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  `cargo_tutor_empresa` varchar(255) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  `telefono_tutor_empresa` varchar(20) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  `email_tutor_empresa` varchar(255) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  `corte_id` INT DEFAULT NULL COMMENT 'Relación con la tabla cortes_coformacion',
+  PRIMARY KEY (`acompanamiento_id`),
+  CONSTRAINT `acompañamiento_estudiantil_coformacion_ibfk_1` FOREIGN KEY (`estudiante_id`) REFERENCES `estudiantes` (`estudiante_id`) ON DELETE RESTRICT,
+  CONSTRAINT `acompañamiento_estudiantil_coformacion_ibfk_2` FOREIGN KEY (`proceso_id`) REFERENCES `procesos_coformacion` (`proceso_id`) ON DELETE RESTRICT,
+  CONSTRAINT `acompañamiento_estudiantil_coformacion_ibfk_3` FOREIGN KEY (`docente_id`) REFERENCES `Docentes` (`docente_id`) ON DELETE RESTRICT,
+  CONSTRAINT `acompañamiento_estudiantil_coformacion_ibfk_4` FOREIGN KEY (`empresa_id`) REFERENCES `empresas` (`empresa_id`) ON DELETE RESTRICT,
+  CONSTRAINT `acompañamiento_estudiantil_coformacion_ibfk_5` FOREIGN KEY (`corte_id`) REFERENCES `cortes_coformacion` (`corte_id`) ON DELETE RESTRICT
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+DROP TABLE IF EXISTS `Docentes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Docentes` (
+  `docente_id` INT NOT NULL AUTO_INCREMENT,
+  `nombre_completo_docente` varchar(255) COLLATE utf8mb4_spanish_ci NOT NULL,
+  `cargo_docente` varchar(255) COLLATE utf8mb4_spanish_ci NOT NULL,
+  `telefono_docente` varchar(20) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  `email_docente` varchar(255) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  PRIMARY KEY (`docente_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+DROP TABLE IF EXISTS `cortes_coformacion`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cortes_coformacion` (
+  `corte_id` INT NOT NULL AUTO_INCREMENT,
+  `numero_corte` varchar(255) COLLATE utf8mb4_spanish_ci NOT NULL,
+  `fecha_inicio_corte` date NOT NULL,
+  `fecha_finalizacion_corte` date NOT NULL,
+  PRIMARY KEY (`corte_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
 
 --
+
 -- Dumping data for table `empresas`
 --
 
 LOCK TABLES `empresas` WRITE;
 /*!40000 ALTER TABLE `empresas` DISABLE KEYS */;
-INSERT INTO `empresas` VALUES (1,'Soluciones Digitales S.A.S.','SolDigital',1,3,'Av. Siempre Viva 101','Bogotá','Cundinamarca','6011234567','https://soldigital.com',5,120,'Vigente','2023-03-15','https://soldigital.com/convenio.pdf','Desarrollo de software','Lunes a viernes 8am-5pm',0,NULL,1,'2025-06-11 23:00:10','2025-06-11 23:00:10',NULL),(2,'Instituto Latino de Educación','ILEDUC',2,2,'Calle 50 #30-40','Cali','Valle','6029876543','https://ileduc.org',3,40,'En Trámite',NULL,NULL,'Servicios educativos','Lunes a viernes 7am-4pm',0,NULL,1,'2025-06-11 23:00:10','2025-06-11 23:00:10',NULL),(9,'Constructora El Pilar S.A.S','El Pilar',1,2,'Calle 123 #45-67','Bogotá','Cundinamarca','3101234567','https://elpilar.com/',1,120,'Vigente','2024-01-15','https://elpilar.com/convenio.pdf','Construcción de obras de ingeniería civil','Lunes a viernes, 8:00 a.m. - 5:00 p.m.',0,NULL,1,'2025-06-12 01:38:20','2025-06-12 01:44:39','9001234567'),(10,'Industrias La Montaña S.A.','La Montaña',2,3,'Carrera 10 #20-30','Medellín','Antioquia','6041234567','https://lamontana.com/',1,350,'Vigente','2023-11-10','https://lamontana.com/convenio.pdf','Fabricación de productos alimenticios','Turnos rotativos',0,NULL,1,'2025-06-12 01:38:20','2025-06-12 01:38:20','800987654-3'),(11,'Transportes Nacionales Ltda.','TransNac',2,1,'Av. Las Palmas #30-50','Cali','Valle del Cauca','3029876543','https://tnl.com.co/',0,45,'En Trámite','2022-05-20','https://tnl.com.co/convenio.pdf','Transporte terrestre de carga','Lunes a sábado, 7:00 a.m. - 6:00 p.m.',0,NULL,1,'2025-06-12 01:38:20','2025-06-12 01:38:20','901222333-1');
+INSERT INTO empresas (
+  nit_empresa,
+  razon_social,
+  nombre_comercial,
+  sector_id, -- FK: Debe existir en la tabla sectores_economicos
+  tamano_id, -- FK: Debe existir en la tabla tamanos_empresa
+  direccion_empresa,
+  nombre_persona_contacto_empresa,
+  numero_persona_contacto_empresa,
+  ciudad_empresa,
+  departamento_empresa,
+  cargo_persona_contacto_empresa,
+  telefono_empresa,
+  email_empresa,
+  sitio_web,
+  cuota_sena,
+  numero_empleados,
+  estado_convenio,
+  fecha_convenio,
+  convenio_url,
+  actividad_economica,
+  horario_laboral,
+  trabaja_sabado,
+  observaciones
+) VALUES (
+  '901.234.567-8',                     -- nit_empresa
+  'Soluciones Tecnológicas Globales S.A.S.', -- razon_social
+  'SoluTech Global',                   -- nombre_comercial
+  1,                                   -- sector_id (Ej: Tecnología)
+  2,                                   -- tamano_id (Ej: Mediana empresa)
+  'Carrera 15 # 93-60 Oficina 402',    -- direccion_empresa
+  'María Fernanda González',           -- nombre_persona_contacto_empresa
+  '3109876543',                        -- numero_persona_contacto_empresa (Celular contacto)
+  'Bogotá',                            -- ciudad_empresa
+  'Cundinamarca',                      -- departamento_empresa
+  'Gerente de Talento Humano',         -- cargo_persona_contacto_empresa
+  '6012345678',                        -- telefono_empresa (Fijo empresa)
+  'contacto@solutech.com.co',          -- email_empresa
+  'https://www.solutech.com.co',       -- sitio_web
+  3,                                   -- cuota_sena (Cupos disponibles)
+  50,                                  -- numero_empleados
+  'Vigente',                           -- estado_convenio
+  '2024-01-15',                        -- fecha_convenio
+  'https://drive.google.com/convenio1',-- convenio_url
+  'Desarrollo de software y consultoría en sistemas informáticos.', -- actividad_economica
+  'Lunes a Viernes 8:00 AM - 5:30 PM', -- horario_laboral
+  0,                                   -- trabaja_sabado (0 = No, 1 = Si)
+  'Empresa interesada en aprendices de etapa productiva.' -- observaciones
+);
+
 /*!40000 ALTER TABLE `empresas` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -840,19 +939,26 @@ CREATE TABLE `procesos_coformacion` (
   `estudiante_id` int NOT NULL,
   `empresa_id` int NOT NULL,
   `estado_id` int NOT NULL,
-  `fecha_inicio` date NOT NULL,
-  `fecha_fin` date DEFAULT NULL,
+  `fecha_inicio_fase_coformacion` date NOT NULL,
+  `fecha_fin_fase_practica` date DEFAULT NULL,
+  `fecha_ingreso_empresa` date DEFAULT NULL,
+  `fecha_finalizacion_empresa` date DEFAULT NULL,
+  `fecha_carta_presentacion` date DEFAULT NULL,
   `horario` text COLLATE utf8mb4_spanish_ci,
+  `forma_de_pago` decimal(10,2) DEFAULT '0',
   `trabaja_sabado` tinyint(1) DEFAULT '0',
   `salario` decimal(10,2) DEFAULT NULL,
-  `modalidad` enum('Presencial','Virtual','Híbrido') COLLATE utf8mb4_spanish_ci NOT NULL,
+  `modalidad_vinculacion` enum('Presencial','Virtual','Híbrido') COLLATE utf8mb4_spanish_ci NOT NULL,
+  `carta_presentacion_enviada` enum('Si','No') COLLATE utf8mb4_spanish_ci NOT NULL,
+  `carta_presentacion_recibida` enum('Si','No') COLLATE utf8mb4_spanish_ci NOT NULL,
+  `modalidad_coformacion` enum('Presencial','Virtual','Híbrido') COLLATE utf8mb4_spanish_ci NOT NULL,
   `observaciones` text COLLATE utf8mb4_spanish_ci,
   `fecha_creacion` datetime DEFAULT CURRENT_TIMESTAMP,
   `fecha_actualizacion` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`proceso_id`),
   KEY `estudiante_id` (`estudiante_id`),
   KEY `empresa_id` (`empresa_id`),
-  KEY `idx_proceso_fechas` (`fecha_inicio`,`fecha_fin`),
+  KEY `idx_proceso_fechas` (`fecha_inicio_fase_coformacion`,`fecha_fin_fase_practica`),
   KEY `idx_proceso_estado_empresa` (`estado_id`,`empresa_id`),
   CONSTRAINT `procesos_coformacion_ibfk_1` FOREIGN KEY (`estudiante_id`) REFERENCES `estudiantes` (`estudiante_id`) ON DELETE RESTRICT,
   CONSTRAINT `procesos_coformacion_ibfk_2` FOREIGN KEY (`empresa_id`) REFERENCES `empresas` (`empresa_id`) ON DELETE RESTRICT,
@@ -866,7 +972,27 @@ CREATE TABLE `procesos_coformacion` (
 
 LOCK TABLES `procesos_coformacion` WRITE;
 /*!40000 ALTER TABLE `procesos_coformacion` DISABLE KEYS */;
-INSERT INTO `procesos_coformacion` VALUES (1,1,1,1,'2024-06-01',NULL,NULL,0,1200000.00,'Presencial',NULL,'2025-06-11 23:00:10','2025-06-11 23:00:10'),(2,2,2,1,'2024-06-15',NULL,NULL,0,800000.00,'Virtual',NULL,'2025-06-11 23:00:10','2025-06-11 23:00:10');
+INSERT INTO procesos_coformacion (
+  estudiante_id,
+  empresa_id,
+  estado_id,
+  fecha_inicio_fase_coformacion, -- Campo obligatorio, se usa la fecha actual
+  modalidad_vinculacion,
+  carta_presentacion_enviada,
+  carta_presentacion_recibida,
+  modalidad_coformacion,
+  observaciones
+) VALUES (
+  2,                             -- estudiante_id (Otro estudiante)
+  3,                             -- empresa_id (Otra empresa)
+  1,                             -- estado_id (Ej: 1 = 'En Proceso/Selección')
+  CURDATE(),                     -- fecha_inicio_fase_coformacion (Se registra el inicio del proceso)
+  'Presencial',
+  'No',
+  'No',
+  'Presencial',
+  'Hoja de vida enviada, pendiente de entrevista.'
+);
 /*!40000 ALTER TABLE `procesos_coformacion` ENABLE KEYS */;
 UNLOCK TABLES;
 

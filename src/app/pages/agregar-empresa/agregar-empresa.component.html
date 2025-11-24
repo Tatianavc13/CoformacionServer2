@@ -28,9 +28,37 @@
       <!-- Profile Icon Section -->
       <div class="profile-section">
         <div class="profile-icon">
-          <svg width="60" height="60" viewBox="0 0 24 24" fill="white">
+          <img 
+            *ngIf="logoPreview" 
+            [src]="logoPreview" 
+            alt="Logo de la empresa" 
+            style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+          <svg 
+            *ngIf="!logoPreview" 
+            width="60" 
+            height="60" 
+            viewBox="0 0 24 24" 
+            fill="white">
             <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
           </svg>
+        </div>
+        <div class="logo-upload-section" style="margin-top: 10px; text-align: center;">
+          <input 
+            type="file" 
+            id="logoInput" 
+            style="display: none;" 
+            (change)="onLogoSelected($event)"
+            accept="image/*">
+          <button 
+            type="button" 
+            class="file-button" 
+            (click)="triggerLogoInput()"
+            style="margin: 0 auto;">
+            {{ nombreLogoEmpresa ? 'Cambiar Logo' : 'Subir Logo' }}
+          </button>
+          <p *ngIf="nombreLogoEmpresa" style="margin-top: 5px; font-size: 12px; color: #666;">
+            {{ nombreLogoEmpresa }}
+          </p>
         </div>
       </div>
 
@@ -63,15 +91,45 @@
         <div class="form-group">
           <label>Seleccionar archivo</label>
           <div class="file-input">
-            <input type="text" placeholder="Archivo seleccionado" readonly>
-            <button type="button" class="file-button">Seleccionar archivo</button>
+            <input 
+              type="text" 
+              [value]="nombreArchivo1" 
+              placeholder="Archivo seleccionado" 
+              readonly>
+            <input 
+              type="file" 
+              id="fileInput1" 
+              style="display: none;" 
+              (change)="onFileSelected($event, 1)"
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+            <button 
+              type="button" 
+              class="file-button" 
+              (click)="triggerFileInput(1)">
+              Seleccionar archivo
+            </button>
           </div>
         </div>
         <div class="form-group">
           <label>Seleccionar archivo</label>
           <div class="file-input">
-            <input type="text" placeholder="Archivo seleccionado" readonly>
-            <button type="button" class="file-button">Seleccionar archivo</button>
+            <input 
+              type="text" 
+              [value]="nombreArchivo2" 
+              placeholder="Archivo seleccionado" 
+              readonly>
+            <input 
+              type="file" 
+              id="fileInput2" 
+              style="display: none;" 
+              (change)="onFileSelected($event, 2)"
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+            <button 
+              type="button" 
+              class="file-button" 
+              (click)="triggerFileInput(2)">
+              Seleccionar archivo
+            </button>
           </div>
         </div>
         
@@ -92,7 +150,7 @@
         
         <div class="form-group">
           <label>Sector</label>
-          <select formControlName="sector" [class.is-invalid]="f['sector'].invalid && f['sector'].touched">
+          <select formControlName="sector" (change)="onSectorChange($event)" [class.is-invalid]="f['sector'].invalid && f['sector'].touched">
             <option value="">Seleccionar sector</option>
             <option *ngFor="let sector of sectoresEconomicos" [value]="sector.sector_id">
               {{ sector.nombre }}
@@ -104,7 +162,7 @@
         </div>
         <div class="form-group">
           <label>Tamaño Empresa</label>
-          <select formControlName="tamano" [class.is-invalid]="f['tamano'].invalid && f['tamano'].touched">
+          <select formControlName="tamano" (change)="onTamanoChange($event)" [class.is-invalid]="f['tamano'].invalid && f['tamano'].touched">
             <option value="">Seleccionar tamaño</option>
             <option *ngFor="let tamano of tamanosEmpresa" [value]="tamano.tamano_id">
               {{ tamano.nombre }}
@@ -146,6 +204,49 @@
           <label>Página Web URL</label>
           <input type="text" formControlName="sitio_web" placeholder="https://ejemplo.com">
         </div>
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text" formControlName="telefono" placeholder="Teléfono de la empresa">
+        </div>
+        
+        <div class="form-group">
+          <label>Email Empresa</label>
+          <input type="email" formControlName="email_empresa" placeholder="correo@empresa.com">
+        </div>
+        <div class="form-group">
+          <label>Número de Empleados</label>
+          <input type="number" formControlName="numero_empleados" placeholder="Número de empleados" min="0">
+        </div>
+        
+        <div class="form-group">
+          <label>Cuota SENA</label>
+          <input type="number" formControlName="cuota_sena" placeholder="Cuota SENA" min="0">
+        </div>
+        <div class="form-group"></div>
+      </div>
+
+      <!-- Información de Contacto Section -->
+      <h3 class="section-title">Información de Contacto</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre Persona de Contacto</label>
+          <input type="text" formControlName="nombre_persona_contacto_empresa" placeholder="Nombre completo" [class.is-invalid]="f['nombre_persona_contacto_empresa'].invalid && f['nombre_persona_contacto_empresa'].touched">
+          <div class="invalid-feedback" *ngIf="f['nombre_persona_contacto_empresa'].invalid && f['nombre_persona_contacto_empresa'].touched">
+            El nombre de la persona de contacto es obligatorio
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Cargo Persona de Contacto</label>
+          <input type="text" formControlName="cargo_persona_contacto_empresa" placeholder="Cargo" [class.is-invalid]="f['cargo_persona_contacto_empresa'].invalid && f['cargo_persona_contacto_empresa'].touched">
+          <div class="invalid-feedback" *ngIf="f['cargo_persona_contacto_empresa'].invalid && f['cargo_persona_contacto_empresa'].touched">
+            El cargo de la persona de contacto es obligatorio
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Número Persona de Contacto</label>
+          <input type="text" formControlName="numero_persona_contacto_empresa" placeholder="Teléfono o celular">
+        </div>
         <div class="form-group"></div>
       </div>
 
@@ -168,8 +269,24 @@
           <input type="date" formControlName="fecha_convenio">
         </div>
         <div class="form-group">
-          <label>Duración Convenio (días)</label>
-          <input type="number" placeholder="365">
+          <label>URL del Convenio</label>
+          <input type="text" formControlName="convenio_url" placeholder="URL del documento del convenio">
+        </div>
+      </div>
+
+      <!-- Información Laboral Section -->
+      <h3 class="section-title">Información Laboral</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Horario Laboral</label>
+          <textarea formControlName="horario_laboral" placeholder="Ej: Lunes a Viernes 8:00 AM - 6:00 PM" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Trabaja Sábado</label>
+          <select formControlName="trabaja_sabado">
+            <option [value]="false">No</option>
+            <option [value]="true">Sí</option>
+          </select>
         </div>
       </div>
 

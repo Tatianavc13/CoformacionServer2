@@ -30,6 +30,7 @@ export class InformacionEmpresaComponent implements OnInit {
   empresaId: number | null = null;
   showBlockModal = false;
   isBlocking = false;
+  logoUrl: string = 'assets/logoEmpresa.png'; // Logo predeterminado
 
   constructor(
     private router: Router,
@@ -102,6 +103,9 @@ export class InformacionEmpresaComponent implements OnInit {
     this.empresasService.getById(this.empresaId).subscribe({
       next: (empresa) => {
         this.empresa = empresa;
+        // Establecer logo de la empresa o usar el predeterminado
+        // this.logoUrl = empresa.logo_url || 'assets/logoEmpresa.png';  // Comentado temporalmente
+        this.logoUrl = 'assets/logoEmpresa.png';
         this.loadRelatedData();
       },
       error: (error) => {

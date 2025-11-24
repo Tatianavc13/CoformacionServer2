@@ -7,6 +7,7 @@ import { SectoresEconomicosService } from '../../services/sectores_economicos.se
 import { TamanosEmpresaService } from '../../services/tamanos_empresa.service';
 import { ContactosEmpresaService } from '../../services/contactos_empresa.service';
 import { TiposContactoService } from '../../services/tipos_contacto.service';
+import { AuthService } from '../../services/auth.service';
 import { Empresa, SectorEconomico, TamanoEmpresa, ContactoEmpresa, TipoContacto, EstadoConvenio } from '../../models/interfaces';
 
 interface CompanyForm {
@@ -58,9 +59,13 @@ export class EditarEmpresaComponent implements OnInit {
     ciudad: '',
     departamento: '',
     telefono: '',
+    email_empresa: '',
     sitio_web: '',
     cuota_sena: null,
     numero_empleados: null,
+    nombre_persona_contacto_empresa: '',
+    numero_persona_contacto_empresa: '',
+    cargo_persona_contacto_empresa: '',
     estado_convenio: EstadoConvenio.EnTramite,
     fecha_convenio: '',
     convenio_url: '',
@@ -73,6 +78,11 @@ export class EditarEmpresaComponent implements OnInit {
     fecha_actualizacion: '',
     nit: ''
   };
+  
+  // Campos adicionales para el formulario
+  nacionalOInternacional: string = 'Nacional';
+  identificacion_contacto: string = '';
+  correo_alternativo: string = '';
 
   // Contacto principal de la empresa
   contactoPrincipal: ContactoEmpresa = {
@@ -171,7 +181,8 @@ export class EditarEmpresaComponent implements OnInit {
     private sectoresEconomicosService: SectoresEconomicosService,
     private tamanosEmpresaService: TamanosEmpresaService,
     private contactosEmpresaService: ContactosEmpresaService,
-    private tiposContactoService: TiposContactoService
+    private tiposContactoService: TiposContactoService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -198,18 +209,33 @@ export class EditarEmpresaComponent implements OnInit {
     this.error = null;
 
     // Cargar todos los datos necesarios
+    // Hacer tiposContacto opcional para que no falle si el servicio no está disponible
     Promise.all([
       this.empresasService.getById(this.empresaId!).toPromise(),
       this.sectoresEconomicosService.getAll().toPromise(),
       this.tamanosEmpresaService.getAll().toPromise(),
-      this.tiposContactoService.getAll().toPromise(),
+      this.tiposContactoService.getAll().toPromise().catch(() => []), // Si falla, usar array vacío
       this.contactosEmpresaService.getAll().toPromise()
     ]).then(([empresa, sectores, tamanos, tiposContacto, contactos]) => {
+      if (!empresa) {
+        throw new Error('No se encontró la empresa');
+      }
+      
+      // Asegurar que logo_url no cause problemas si viene en la respuesta
+      if (empresa && 'logo_url' in empresa) {
+        delete empresa.logo_url;
+      }
+      
       this.empresa = { ...empresa };
       this.originalEmpresaData = { ...empresa };
       this.sectoresEconomicos = sectores || [];
       this.tamanosEmpresa = tamanos || [];
       this.tiposContacto = tiposContacto || [];
+      
+      // Inicializar campos adicionales
+      this.nacionalOInternacional = 'Nacional'; // Valor por defecto
+      this.identificacion_contacto = ''; // No disponible en el modelo actual
+      this.correo_alternativo = ''; // Se puede obtener de contactos adicionales si existe
 
       // Buscar contacto principal de la empresa
       const contactosEmpresa = contactos?.filter(c => c.empresa_id === this.empresa.empresa_id) || [];
@@ -217,6 +243,14 @@ export class EditarEmpresaComponent implements OnInit {
         this.contactoPrincipal = { ...contactosEmpresa[0] };
         this.originalContactoData = { ...contactosEmpresa[0] };
         this.isEditingContact = true;
+        
+        // Si hay más de un contacto, usar el email del segundo como alternativo
+        if (contactosEmpresa.length > 1) {
+          const segundoContacto = contactosEmpresa.find(c => c !== this.contactoPrincipal);
+          if (segundoContacto && segundoContacto.email) {
+            this.correo_alternativo = segundoContacto.email;
+          }
+        }
       } else {
         // Si no hay contacto, preparar uno nuevo
         this.contactoPrincipal.empresa_id = this.empresa.empresa_id;
@@ -226,7 +260,8 @@ export class EditarEmpresaComponent implements OnInit {
       this.isLoading = false;
     }).catch(error => {
       console.error('Error cargando datos:', error);
-      this.error = 'Error al cargar los datos de la empresa.';
+      const errorMessage = error?.error?.error || error?.error?.message || error?.message || 'Error desconocido';
+      this.error = `Error al cargar los datos de la empresa: ${errorMessage}`;
       this.isLoading = false;
     });
   }
@@ -247,8 +282,17 @@ export class EditarEmpresaComponent implements OnInit {
   // Validación del formulario
   isValidEmpresaForm(): boolean {
     return !!(
-      (this.empresa.nombre_comercial || '').trim() &&
-      (this.empresa.nit || '').trim()
+      (this.empresa.razon_social || '').trim() &&
+      (this.empresa.nit || '').trim() &&
+      this.empresa.sector &&
+      this.empresa.tamano &&
+      (this.empresa.direccion || '').trim() &&
+      (this.empresa.ciudad || '').trim() &&
+      (this.empresa.departamento || '').trim() &&
+      (this.empresa.actividad_economica || '').trim() &&
+      (this.empresa.nombre_persona_contacto_empresa || '').trim() &&
+      (this.empresa.cargo_persona_contacto_empresa || '').trim() &&
+      (this.empresa.email_empresa || '').trim()
     );
   }
 
@@ -285,51 +329,60 @@ export class EditarEmpresaComponent implements OnInit {
     this.successMessage = null;
 
     try {
+      // Preparar datos de la empresa para actualizar
+      const empresaData: any = {
+        razon_social: this.empresa.razon_social,
+        nombre_comercial: this.empresa.nombre_comercial || '',
+        nit: this.empresa.nit,
+        sector: this.empresa.sector ? parseInt(String(this.empresa.sector)) : null,
+        tamano: this.empresa.tamano ? parseInt(String(this.empresa.tamano)) : null,
+        direccion: this.empresa.direccion,
+        ciudad: this.empresa.ciudad,
+        departamento: this.empresa.departamento,
+        telefono: this.empresa.telefono || '',
+        email_empresa: this.empresa.email_empresa || '',
+        sitio_web: this.empresa.sitio_web || '',
+        numero_empleados: this.empresa.numero_empleados || null,
+        actividad_economica: this.empresa.actividad_economica,
+        nombre_persona_contacto_empresa: this.empresa.nombre_persona_contacto_empresa,
+        numero_persona_contacto_empresa: this.empresa.numero_persona_contacto_empresa || '',
+        cargo_persona_contacto_empresa: this.empresa.cargo_persona_contacto_empresa,
+        estado_convenio: this.empresa.estado_convenio,
+        fecha_convenio: this.empresa.fecha_convenio || null,
+        convenio_url: this.empresa.convenio_url || '',
+        horario_laboral: this.empresa.horario_laboral || '',
+        trabaja_sabado: this.empresa.trabaja_sabado || false,
+        observaciones: this.empresa.observaciones || '',
+        estado: this.empresa.estado !== false,
+        cuota_sena: this.empresa.cuota_sena || null
+      };
+
       // Actualizar empresa
-      if (this.hasEmpresaChanges()) {
-        const empresaData = { ...this.empresa };
-        
-        // Convertir valores cero a null para campos opcionales
-        if (!empresaData.sector) empresaData.sector = 0;
-        if (!empresaData.tamano) empresaData.tamano = 0;
-
-        const empresaResponse = await this.empresasService.update(this.empresa.empresa_id, empresaData).toPromise();
-        this.originalEmpresaData = { ...this.empresa };
-      }
-
-      // Actualizar/crear contacto si hay datos válidos
-      if (this.showContactForm && this.isValidContactoForm()) {
-        const contactoData = { ...this.contactoPrincipal };
-        
-        // Asegurar que el contacto esté asociado a la empresa
-        contactoData.empresa_id = this.empresa.empresa_id;
-        
-        // Limpiar campos vacíos opcionales
-        if (!contactoData.tipo?.trim()) contactoData.tipo = null;
-        if (!contactoData.cargo?.trim()) contactoData.cargo = null;
-        if (!contactoData.area?.trim()) contactoData.area = null;
-
-        if (this.isEditingContact && this.contactoPrincipal.contacto_id) {
-          // Actualizar contacto existente
-          const contactoResponse = await this.contactosEmpresaService.update(this.contactoPrincipal.contacto_id, contactoData).toPromise();
-        } else {
-          // Crear nuevo contacto
-          const contactoResponse = await this.contactosEmpresaService.create(contactoData).toPromise();
-          this.contactoPrincipal.contacto_id = contactoResponse.contacto_id;
-          this.isEditingContact = true;
-        }
-        
-        this.originalContactoData = { ...this.contactoPrincipal };
-      }
+      const empresaResponse = await this.empresasService.update(this.empresa.empresa_id, empresaData).toPromise();
+      this.originalEmpresaData = { ...this.empresa };
 
       this.successMessage = 'Información de la empresa actualizada exitosamente.';
       this.isSaving = false;
       
-      // Redirigir a información empresa después de 2 segundos
+      // Redirigir según el rol del usuario
       setTimeout(() => {
-        this.router.navigate(['/informacion-empresa'], { 
-          queryParams: { id: this.empresaId }
-        });
+        // Obtener el tipo de usuario desde el servicio de autenticación
+        const userType = this.authService.getUserType();
+        
+        if (userType === 'coformacion') {
+          // Si es coformación, redirigir a consult-empresa
+          this.router.navigate(['/consult-empresa']);
+        } else if (userType === 'empresa') {
+          // Si es empresa, redirigir a su página de información
+          this.router.navigate(['/informacion-empresa'], { 
+            queryParams: { id: this.empresaId }
+          });
+        } else {
+          // Por defecto, redirigir a resumen-empresa
+          this.router.navigate(['/resumen-empresa'], { 
+            queryParams: { id: this.empresaId }
+          });
+        }
       }, 2000);
 
     } catch (error) {
@@ -345,9 +398,21 @@ export class EditarEmpresaComponent implements OnInit {
       if (!confirmCancel) return;
     }
     
-    this.router.navigate(['/informacion-empresa'], { 
-      queryParams: { id: this.empresaId } 
-    });
+    // Redirigir según el rol del usuario
+    const userType = this.authService.getUserType();
+    
+    if (userType === 'coformacion') {
+      // Si es coformación, redirigir a consult-empresa
+      this.router.navigate(['/consult-empresa']);
+    } else if (userType === 'empresa') {
+      // Si es empresa, redirigir a su página de información
+      this.router.navigate(['/informacion-empresa'], { 
+        queryParams: { id: this.empresaId } 
+      });
+    } else {
+      // Por defecto, redirigir a consult-empresa
+      this.router.navigate(['/consult-empresa']);
+    }
   }
 
   resetForm(): void {

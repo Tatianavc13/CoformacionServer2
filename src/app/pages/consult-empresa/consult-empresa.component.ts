@@ -203,6 +203,10 @@ export class ConsultEmpresaComponent implements OnInit {
     this.router.navigate(['/resumen-empresa'], { queryParams: { id: empresa.empresa_id } });
   }
 
+  goToEditarEmpresa(empresa: Empresa) {
+    this.router.navigate(['/editar-empresa'], { queryParams: { id: empresa.empresa_id } });
+  }
+
   navegarAgregarEmpresa() {
     this.router.navigate(['/agregar-empresa']);
   }

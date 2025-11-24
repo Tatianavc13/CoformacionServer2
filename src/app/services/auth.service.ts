@@ -26,7 +26,7 @@ export class AuthService {
     private apiConfig: ApiConfigService
   ) {
     this.apiUrl = `${this.apiConfig.getBaseUrl()}/auth`;
-    
+
     // Recuperar sesión del localStorage al inicializar
     this.loadStoredSession();
   }
@@ -50,11 +50,19 @@ export class AuthService {
       numero_documento: identificacion
     };
 
-    return this.http.post<any>(`${this.apiConfig.getBaseUrl()}/auth/login/`, loginData)
-      .pipe(
-        tap((response: any) => {
+    const url = `${this.apiConfig.getBaseUrl()}/auth/login/`;
+    console.log('AuthService - Login URL:', url);
+    console.log('AuthService - Login Data:', loginData);
+
+    return this.http.post<any>(url, loginData, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }).pipe(
+      tap({
+        next: (response: any) => {
           console.log('AuthService - Login response:', response);
-          
+
           const success = response?.success;
           const userData = response?.data;
           const userType = response?.tipo_usuario;
@@ -64,31 +72,38 @@ export class AuthService {
             // Normalizar el tipo de usuario a minúsculas para consistencia
             const normalizedUserType = userType.toLowerCase().trim();
             console.log('AuthService - Normalized user type:', normalizedUserType);
-            
+
             const userSession: UserSession = {
               user: userData,
               tipo_usuario: normalizedUserType as 'empresa' | 'estudiante' | 'coformacion',
               token: token,
               isAuthenticated: true
             };
-            
+
             console.log('AuthService - Saving session:', userSession);
-            
+
             // Guardar sesión en localStorage y BehaviorSubject
             localStorage.setItem('userSession', JSON.stringify(userSession));
             this.currentUserSubject.next(userSession);
-            
+
             // Si es un estudiante, guardar también el ID en sessionStorage para compatibilidad
             if (normalizedUserType === 'estudiante' && userData?.estudiante_id) {
               sessionStorage.setItem('estudiante_id', userData.estudiante_id.toString());
               console.log('AuthService - Saved estudiante_id to sessionStorage:', userData.estudiante_id);
             }
-            
+
             // Modificar la respuesta para que el componente la entienda
             response.success = true;
           }
-        })
-      );
+        },
+        error: (error: any) => {
+          console.error('AuthService - Login error:', error);
+          console.error('AuthService - Error status:', error?.status);
+          console.error('AuthService - Error message:', error?.message);
+          console.error('AuthService - Error error:', error?.error);
+        }
+      })
+    );
   }
 
   logout(): void {
@@ -113,9 +128,9 @@ export class AuthService {
 
   getUserType(): 'empresa' | 'estudiante' | 'coformacion' | null {
     const userType = this.currentUserValue?.tipo_usuario || null;
-    console.log('AuthService - getUserType:', { 
-      currentUserValue: this.currentUserValue, 
-      tipo_usuario: userType 
+    console.log('AuthService - getUserType:', {
+      currentUserValue: this.currentUserValue,
+      tipo_usuario: userType
     });
     return userType;
   }
@@ -162,26 +177,25 @@ export class AuthService {
       case 'estudiante':
         return this.canEstudianteAccessRoute(route);
       case 'coformacion':
-        return true; // Coformacion puede acceder a todo
+        return this.canCoformacionAccessRoute(route); // Coformacion solo accede a sus rutas
       default:
         return false;
     }
   }
 
   private canEmpresaAccessRoute(route: string): boolean {
+    // Solo rutas específicas para empresas
     const allowedRoutes = [
       '/home-empresa',
       '/editar-empresa',
       '/informacion-empresa',
-      '/agregar-empresa',
-      '/consult-empresa',
-      '/resumen-empresa',
       '/publicar-oferta'
     ];
     return allowedRoutes.some(allowed => route.startsWith(allowed));
   }
 
   private canEstudianteAccessRoute(route: string): boolean {
+    // Solo rutas específicas para estudiantes
     const allowedRoutes = [
       '/perfil-estudiante',
       '/historial-coformacion',
@@ -191,13 +205,29 @@ export class AuthService {
     return allowedRoutes.some(allowed => route.startsWith(allowed));
   }
 
+  private canCoformacionAccessRoute(route: string): boolean {
+    // Solo rutas administrativas para coformación
+    const allowedRoutes = [
+      '/coformacion',
+      '/consult-empresa',
+      '/consult-estudent',
+      '/agregar-empresa',
+      '/agregar-estudiante',
+      '/resumen-empresa',
+      '/ofertas-coformacion',
+      '/diagnostico',
+      '/perfil-estudiante' // Coformación puede ver perfiles de estudiantes
+    ];
+    return allowedRoutes.some(allowed => route.startsWith(allowed));
+  }
+
   // Redireccionar al usuario a su página de inicio según su tipo
   redirectToUserHome(): void {
     const userType = this.getUserType();
     const currentUser = this.getCurrentUser();
-    
+
     console.log('AuthService - Redirecting user:', { userType, currentUser });
-    
+
     switch (userType) {
       case 'empresa':
         console.log('AuthService - Redirecting to /home-empresa');
@@ -217,4 +247,4 @@ export class AuthService {
         break;
     }
   }
-} 
+}

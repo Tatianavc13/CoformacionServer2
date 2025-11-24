@@ -27,13 +27,14 @@ export class EmpresaGuard implements CanActivate {
       return false;
     }
 
-    if (this.authService.isEmpresa() || this.authService.isCoformacion()) {
-      console.log('EmpresaGuard - Access granted');
+    // Solo empresas pueden acceder a rutas de empresa
+    if (this.authService.isEmpresa()) {
+      console.log('EmpresaGuard - Access granted for empresa user');
       return true;
     }
 
-    // Si no es empresa ni coformacion, redirigir a su página de inicio
-    console.log('EmpresaGuard - Access denied, redirecting to user home');
+    // Si no es empresa, redirigir a su página de inicio
+    console.log('EmpresaGuard - Access denied, not an empresa user');
     this.authService.redirectToUserHome();
     return false;
   }

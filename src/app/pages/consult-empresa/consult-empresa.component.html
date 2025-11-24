@@ -63,7 +63,10 @@
                         <td>{{ getTamanoNombre(empresa.tamano) }}</td>
                         <td>{{ getContactosCount(empresa.empresa_id) }}</td>
                         <td>
-                            <button class="details-button" (click)="goToResumenEmpresa(empresa)">VER DETALLES</button>
+                            <div class="action-buttons">
+                                <button class="details-button" (click)="goToResumenEmpresa(empresa)">VER DETALLES</button>
+                                <button class="edit-button" (click)="goToEditarEmpresa(empresa)">EDITAR</button>
+                            </div>
                         </td>
                     </tr>
                 </tbody>

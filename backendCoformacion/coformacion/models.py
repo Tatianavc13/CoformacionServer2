@@ -224,13 +224,18 @@ class Empresas(models.Model):
     nombre_comercial = models.CharField(max_length=255, blank=True, null=True)
     sector = models.ForeignKey('SectoresEconomicos', on_delete=models.RESTRICT, db_column='sector_id')
     tamano = models.ForeignKey('TamanosEmpresa', on_delete=models.RESTRICT, db_column='tamano_id')
-    direccion = models.CharField(max_length=255)
-    ciudad = models.CharField(max_length=100)
-    departamento = models.CharField(max_length=100)
-    telefono = models.CharField(max_length=20, blank=True, null=True)
+    direccion = models.CharField(max_length=255, db_column='direccion_empresa')
+    ciudad = models.CharField(max_length=100, db_column='ciudad_empresa')
+    ciudad_duplicada = models.CharField(max_length=100, db_column='ciudad')  # Columna adicional 'ciudad' en la BD
+    departamento = models.CharField(max_length=100, db_column='departamento_empresa')
+    telefono = models.CharField(max_length=20, blank=True, null=True, db_column='telefono_empresa')
+    email_empresa = models.CharField(max_length=255, blank=True, null=True, db_column='email_empresa')
     sitio_web = models.CharField(max_length=255, blank=True, null=True)
     cuota_sena = models.IntegerField(blank=True, null=True)
     numero_empleados = models.IntegerField(blank=True, null=True)
+    nombre_persona_contacto_empresa = models.CharField(max_length=255, db_column='nombre_persona_contacto_empresa')
+    numero_persona_contacto_empresa = models.CharField(max_length=255, blank=True, null=True, db_column='numero_persona_contacto_empresa')
+    cargo_persona_contacto_empresa = models.CharField(max_length=255, db_column='cargo_persona_contacto_empresa')
     ESTADO_CONVENIO_CHOICES = [
         ('Vigente', 'Vigente'),
         ('No Vigente', 'No Vigente'),
@@ -246,7 +251,8 @@ class Empresas(models.Model):
     estado = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
-    nit = models.CharField(max_length=20, blank=True, null=True)
+    nit = models.CharField(max_length=20, blank=True, null=True, db_column='nit_empresa')
+    # logo_url = models.CharField(max_length=255, blank=True, null=True, db_column='logo_url')  # Comentado temporalmente hasta ejecutar migración
 
     class Meta:
         db_table = 'empresas'
@@ -295,14 +301,35 @@ class OfertasEmpresas(models.Model):
         ('Híbrido', 'Híbrido'),
     ]
 
+    TIPO_OFERTA_CHOICES = [
+        ('Nacional', 'Nacional'),
+        ('Internacional', 'Internacional'),
+    ]
+
+    APOYO_ECONOMICO_CHOICES = [
+        ('Si', 'Si'),
+        ('No', 'No'),
+    ]
+
     idOferta = models.AutoField(primary_key=True, db_column='idOferta')
-    nacional = models.CharField(max_length=2, choices=NACIONAL_CHOICES)
-    nombreTutor = models.CharField(max_length=40)
-    apoyoEconomico = models.DecimalField(max_digits=10, decimal_places=2, db_column='apoyoEconomico')
-    modalidad = models.CharField(max_length=10, choices=MODALIDAD_CHOICES)
-    nombreEmpresa = models.CharField(max_length=255)
+    nacional = models.CharField(max_length=2, choices=NACIONAL_CHOICES, blank=True, null=True)
+    nombreTutor = models.CharField(max_length=40, blank=True, null=True)
+    apoyoEconomico = models.DecimalField(max_digits=10, decimal_places=2, db_column='apoyoEconomico', blank=True, null=True)
+    modalidad = models.CharField(max_length=10, choices=MODALIDAD_CHOICES, blank=True, null=True)
+    nombreEmpresa = models.CharField(max_length=255, blank=True, null=True)
     empresa = models.ForeignKey(Empresas, on_delete=models.CASCADE, db_column='empresa_id')
     programa_id = models.ForeignKey('Programas', on_delete=models.SET_NULL, null=True, blank=True, db_column='programa_id')
+    
+    # Campos nuevos agregados en migración 0003
+    # Comentados temporalmente porque no existen en la BD actual
+    # tipo_oferta = models.CharField(max_length=20, choices=TIPO_OFERTA_CHOICES, blank=True, null=True)
+    # apoyo_economico = models.BooleanField(default=False)  # Cambiado a BooleanField en migración 0004
+    # nombre_responsable = models.CharField(max_length=255, blank=True, null=True)
+    
+    # Campos adicionales para descripción y fechas
+    # descripcion = models.TextField(blank=True, null=True)
+    # fecha_inicio = models.DateField(blank=True, null=True)
+    # fecha_fin = models.DateField(blank=True, null=True)
 
     class Meta:
         db_table = 'ofertasempresas'

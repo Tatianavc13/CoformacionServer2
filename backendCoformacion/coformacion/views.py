@@ -79,6 +79,19 @@ class TamanosEmpresaViewSet(viewsets.ModelViewSet):
 class EmpresasViewSet(viewsets.ModelViewSet):
     queryset = Empresas.objects.all()
     serializer_class = EmpresasSerializer
+    
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            return super().retrieve(request, *args, **kwargs)
+        except Exception as e:
+            import traceback
+            error_trace = traceback.format_exc()
+            print(f"Error en EmpresasViewSet.retrieve: {e}")
+            print(error_trace)
+            return Response(
+                {'error': f'Error al obtener la empresa: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class TiposContactoViewSet(viewsets.ModelViewSet):
@@ -94,6 +107,154 @@ class ContactosEmpresaViewSet(viewsets.ModelViewSet):
 class OfertasEmpresasViewSet(viewsets.ModelViewSet):
     queryset = OfertasEmpresas.objects.all()
     serializer_class = OfertasEmpresasSerializer
+    
+    def perform_create(self, serializer):
+        """
+        Sobrescribir perform_create para asegurar que tipo_oferta nunca se intente guardar
+        """
+        # El serializer ya debería haber manejado el mapeo, pero verificamos una vez más
+        validated_data = serializer.validated_data.copy()
+        
+        # Asegurar que tipo_oferta NO esté presente
+        validated_data.pop('tipo_oferta', None)
+        
+        # Guardar usando el método create del serializer
+        serializer.save()
+    
+    def create(self, request, *args, **kwargs):
+        try:
+            # Agregar valores por defecto para campos antiguos requeridos si no están presentes
+            data = request.data.copy()
+            
+            print(f"Datos recibidos del frontend: {data}")
+            
+            # Verificar qué campos existen en la base de datos
+            # Si las migraciones no se han ejecutado, solo usar campos básicos
+            from django.db import connection
+            with connection.cursor() as cursor:
+                cursor.execute("SHOW COLUMNS FROM ofertasempresas")
+                existing_columns = [row[0] for row in cursor.fetchall()]
+            
+            # Asegurar que empresa esté presente (puede venir como empresa_id o empresa)
+            if 'empresa' not in data or not data.get('empresa'):
+                # Intentar obtener desde empresa_id
+                if 'empresa_id' in data and data.get('empresa_id'):
+                    data['empresa'] = data['empresa_id']
+                else:
+                    error_message = 'El campo empresa es requerido'
+                    print(f"ERROR: {error_message}. Datos recibidos: {data}")
+                    return Response(
+                        {'error': error_message},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            
+            # Si no se envía 'nacional', usar un valor por defecto
+            if 'nacional' not in data or not data['nacional']:
+                data['nacional'] = 'No'
+            
+            # Si no se envía 'nombreTutor', usar nombre_responsable o un valor por defecto
+            if 'nombreTutor' not in data or not data['nombreTutor']:
+                nombre_responsable = data.get('nombre_responsable', 'Sin especificar')
+                data['nombreTutor'] = nombre_responsable[:40] if nombre_responsable else 'Sin especificar'
+            # También mapear nombre_responsable a nombreTutor si viene del frontend
+            if 'nombre_responsable' in data and 'nombreTutor' not in data:
+                data['nombreTutor'] = data['nombre_responsable'][:40]
+            
+            # Si no se envía 'apoyoEconomico', usar 0
+            if 'apoyoEconomico' not in data or data['apoyoEconomico'] is None:
+                data['apoyoEconomico'] = 0.00
+            # Mapear apoyo_economico a apoyoEconomico si viene del frontend
+            if 'apoyo_economico' in data:
+                apoyo = data['apoyo_economico']
+                if isinstance(apoyo, str):
+                    data['apoyoEconomico'] = 0.00 if apoyo.lower() == 'no' else 0.00
+                elif isinstance(apoyo, bool):
+                    data['apoyoEconomico'] = 0.00
+                else:
+                    data['apoyoEconomico'] = float(apoyo) if apoyo else 0.00
+                # Remover apoyo_economico ya que usamos apoyoEconomico
+                del data['apoyo_economico']
+            
+            # Si no se envía 'modalidad', usar un valor por defecto
+            if 'modalidad' not in data or not data['modalidad']:
+                data['modalidad'] = 'Presencial'
+            
+            # Si no se envía 'nombreEmpresa', obtenerlo de la empresa
+            if 'nombreEmpresa' not in data or not data.get('nombreEmpresa'):
+                try:
+                    empresa_id = data.get('empresa')
+                    if empresa_id:
+                        # Convertir a int si es necesario
+                        if not isinstance(empresa_id, int):
+                            empresa_id = int(empresa_id)
+                        empresa = Empresas.objects.get(pk=empresa_id)
+                        data['nombreEmpresa'] = empresa.nombre_comercial or empresa.razon_social or 'Sin especificar'
+                    else:
+                        data['nombreEmpresa'] = 'Sin especificar'
+                except (Empresas.DoesNotExist, ValueError, TypeError) as e:
+                    print(f"Error obteniendo nombre de empresa: {e}")
+                    data['nombreEmpresa'] = 'Sin especificar'
+            
+            # PRIMERO: Mapear tipo_oferta a nacional (que es el campo que existe en la BD)
+            # tipo_oferta: 'Nacional' -> nacional: 'Si'
+            # tipo_oferta: 'Internacional' -> nacional: 'No'
+            # Esto DEBE hacerse ANTES de cualquier otra operación
+            if 'tipo_oferta' in data:
+                tipo_oferta = data.get('tipo_oferta', 'Nacional')
+                if tipo_oferta == 'Nacional':
+                    data['nacional'] = 'Si'
+                elif tipo_oferta == 'Internacional':
+                    data['nacional'] = 'No'
+                else:
+                    data['nacional'] = 'No'  # Por defecto
+                # Remover tipo_oferta inmediatamente para evitar que se intente insertar
+                del data['tipo_oferta']
+                print(f"✓ tipo_oferta '{tipo_oferta}' mapeado a nacional '{data['nacional']}' y removido de data")
+            
+            # Asegurar que nacional tenga un valor si no se proporcionó tipo_oferta
+            if 'nacional' not in data or not data['nacional']:
+                data['nacional'] = 'No'
+            
+            # Remover otros campos que no existen en la base de datos
+            campos_para_remover = []
+            campos_nuevos = ['apoyo_economico', 'nombre_responsable', 'descripcion', 'fecha_inicio', 'fecha_fin']
+            for campo in campos_nuevos:
+                if campo not in existing_columns and campo in data:
+                    print(f"Advertencia: El campo '{campo}' no existe en la base de datos, se removerá de los datos")
+                    campos_para_remover.append(campo)
+            
+            for campo in campos_para_remover:
+                del data[campo]
+            
+            # Asegurar que tipo_oferta NO esté en los datos finales (verificación final)
+            if 'tipo_oferta' in data:
+                print(f"⚠ ADVERTENCIA CRÍTICA: tipo_oferta todavía está en data, removiéndolo...")
+                del data['tipo_oferta']
+            
+            # Verificación final: asegurar que tipo_oferta no esté presente
+            if 'tipo_oferta' in data:
+                raise ValueError("ERROR: tipo_oferta no debe estar en data antes de serializar. Debe mapearse a 'nacional'.")
+            
+            print(f"Datos finales antes de serializar (sin tipo_oferta): {list(data.keys())}")
+            
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        except Exception as e:
+            import traceback
+            error_trace = traceback.format_exc()
+            print(f"Error en OfertasEmpresasViewSet.create: {e}")
+            print(error_trace)
+            # Retornar solo el mensaje de error sin el traceback completo para el cliente
+            error_message = str(e)
+            if hasattr(e, 'detail'):
+                error_message = str(e.detail)
+            return Response(
+                {'error': f'Error al crear la oferta: {error_message}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class EstadoProcesoViewSet(viewsets.ModelViewSet):

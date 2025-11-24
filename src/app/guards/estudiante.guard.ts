@@ -27,13 +27,14 @@ export class EstudianteGuard implements CanActivate {
       return false;
     }
 
-    if (this.authService.isEstudiante() || this.authService.isCoformacion()) {
-      console.log('EstudianteGuard - Access granted');
+    // Solo estudiantes pueden acceder a rutas de estudiante
+    if (this.authService.isEstudiante()) {
+      console.log('EstudianteGuard - Access granted for estudiante user');
       return true;
     }
 
-    // Si no es estudiante ni coformacion, redirigir a su página de inicio
-    console.log('EstudianteGuard - Access denied, redirecting to user home');
+    // Si no es estudiante, redirigir a su página de inicio
+    console.log('EstudianteGuard - Access denied, not an estudiante user');
     this.authService.redirectToUserHome();
     return false;
   }

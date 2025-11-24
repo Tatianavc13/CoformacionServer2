@@ -24,9 +24,16 @@
     </div>
 
     <!-- Información del estudiante -->
-    <div *ngIf="!loading && !error" class="info-section">
+    <div *ngIf="!loading && !error && estudianteId" class="info-section">
       <p class="info-text">
         📋 Mostrando ofertas compatibles para estudiantes del programa (Estudiante de referencia ID: {{ estudianteId }})
+      </p>
+    </div>
+    
+    <!-- Información para coformación -->
+    <div *ngIf="!loading && !error && !estudianteId" class="info-section">
+      <p class="info-text">
+        📋 Mostrando todas las ofertas recomendadas con estudiantes compatibles
       </p>
     </div>
 
@@ -46,14 +53,14 @@
         </thead>
         <tbody>
           <tr *ngFor="let oferta of recomendaciones">
-            <td>{{ oferta.oferta_id }}</td>
+            <td>{{ oferta.idOferta || oferta.oferta_id || oferta.id }}</td>
             <td>{{ oferta.descripcion }}</td>
             <td>{{ oferta.modalidad }}</td>
             <td>{{ oferta.empresa_nombre }}</td>
-            <td>{{ oferta.programa_id }}</td>
+            <td>{{ oferta.programa_nombre || oferta.programa_id }}</td>
             <td>
-              <span [class]="oferta.estudiante === 'Sin asignar' ? 'sin-asignar' : 'estudiante-asignado'">
-                {{ oferta.estudiante }}
+              <span [class]="oferta.estudiante === 'Sin asignar' || oferta.estudiante === 'Sin estudiantes compatibles' ? 'sin-asignar' : 'estudiante-asignado'">
+                {{ oferta.estudiante || 'Sin asignar' }}
               </span>
             </td>
             <td><button class="details-button">Ver más</button></td>

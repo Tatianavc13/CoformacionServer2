@@ -10,22 +10,47 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
+import importlib.util
+
 from pathlib import Path
+
+# Try to import dj_database_url if available (for production deployments)
+dj_database_url = None
+try:
+    dj_database_url_spec = importlib.util.find_spec("dj_database_url")
+    if dj_database_url_spec is not None:
+        dj_database_url = importlib.import_module("dj_database_url")
+except ImportError:
+    pass
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def _get_env_list(name: str, default: list[str]) -> list[str]:
+    value = os.environ.get(name)
+    if not value:
+        return default
+    return [item.strip() for item in value.split(',') if item.strip()]
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-feyc=i-%kiwivac0p#ti_q3lvff-6on187zit40j&(p#j9#dcy'
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-feyc=i-%kiwivac0p#ti_q3lvff-6on187zit40j&(p#j9#dcy',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+# Permitir cualquier host para desarrollo con ngrok
+# En producción, especifica los hosts permitidos
+default_allowed_hosts = ['localhost', '127.0.0.1', '*']
+ALLOWED_HOSTS = _get_env_list('DJANGO_ALLOWED_HOSTS', default_allowed_hosts)
 
 
 # Application definition
@@ -42,27 +67,48 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 
+# Build middleware list - make whitenoise optional for development
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+]
+
+# Try to add whitenoise middleware if available (for production)
+try:
+    import whitenoise
+    MIDDLEWARE.append('whitenoise.middleware.WhiteNoiseMiddleware')
+except ImportError:
+    pass  # WhiteNoise not installed, skip it for development
+
+MIDDLEWARE.extend([
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
+])
 
-CORS_ALLOWED_ORIGINS = [
+# CORS and CSRF configuration
+default_cors_origins = [
     "http://localhost:4200",
     "http://127.0.0.1:4200",
     "http://localhost:4201",
     "http://127.0.0.1:4201",
 ]
 
+CORS_ALLOWED_ORIGINS = _get_env_list('CORS_ALLOWED_ORIGINS', default_cors_origins)
+
 # Configuración adicional para CORS
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = False
+# Permitir todos los orígenes para desarrollo con ngrok
+# En producción, desactiva esto y especifica CORS_ALLOWED_ORIGINS
+CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'True').lower() == 'true'
+
+# CSRF: Permitir cualquier origen para desarrollo con ngrok
+# En producción, especifica los orígenes confiables
+default_csrf_origins = ['http://localhost:4200', 'http://localhost:4201', 'http://127.0.0.1:4200', 'http://127.0.0.1:4201']
+CSRF_TRUSTED_ORIGINS = _get_env_list('CSRF_TRUSTED_ORIGINS', default_csrf_origins)
 
 # Headers permitidos para el login
 CORS_ALLOW_HEADERS = [
@@ -114,6 +160,14 @@ DATABASES = {
     }
 }
 
+database_url = os.environ.get('DATABASE_URL')
+if database_url and dj_database_url is not None:
+    DATABASES['default'] = dj_database_url.parse(
+        database_url,
+        conn_max_age=600,
+        ssl_require=os.environ.get('DATABASE_SSL_REQUIRED', 'True').lower() == 'true',
+    )
+
 
 
 # Password validation
@@ -151,8 +205,19 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Use whitenoise storage only if whitenoise is installed
+try:
+    import whitenoise
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+except ImportError:
+    # Use default storage if whitenoise is not installed
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

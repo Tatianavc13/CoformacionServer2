@@ -15,7 +15,12 @@
 </div>
 
 <div class="container" *ngIf="!isLoading && !error && empresa">
-  <h2 class="main-title">Editar Empresa</h2>
+  <!-- Back button -->
+  <div class="back-button-container">
+    <button class="btn-back" (click)="cancelar()">← Volver</button>
+  </div>
+  
+  <h2 class="main-title">Editar Empresa: {{ empresa.nombre_comercial || empresa.razon_social }}</h2>
 
   <div class="form-container">
     <form (ngSubmit)="guardarCambios()" #empresaForm="ngForm">
@@ -28,18 +33,27 @@
         
         <div class="form-grid">
           <div class="form-group">
-            <label>Nombre de la Empresa *</label>
+            <label>Razón Social *</label>
+            <input type="text" 
+                   [(ngModel)]="empresa.razon_social" 
+                   name="razon_social"
+                   placeholder="Ingrese razón social"
+                   required
+                   #razonSocial="ngModel"
+                   class="form-control"
+                   [class.invalid]="razonSocial.invalid && razonSocial.touched">
+            <div *ngIf="razonSocial.invalid && razonSocial.touched" class="error-message">
+              La razón social es obligatoria
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Nombre Comercial</label>
             <input type="text" 
                    [(ngModel)]="empresa.nombre_comercial" 
-                   name="nombre"
-                   placeholder="Ingrese nombre de la empresa"
-                   required
-                   #nombre="ngModel"
-                   class="form-control"
-                   [class.invalid]="nombre.invalid && nombre.touched">
-            <div *ngIf="nombre.invalid && nombre.touched" class="error-message">
-              El nombre de la empresa es obligatorio
-            </div>
+                   name="nombre_comercial"
+                   placeholder="Ingrese nombre comercial"
+                   class="form-control">
           </div>
           
           <div class="form-group">
@@ -58,26 +72,155 @@
           </div>
           
           <div class="form-group">
-            <label>Sector Económico</label>
+            <label>RUT</label>
+            <input type="text" 
+                   [(ngModel)]="empresa.nit" 
+                   name="rut"
+                   placeholder="RUT (igual al NIT)"
+                   readonly
+                   class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label>Sector Económico *</label>
             <select [(ngModel)]="empresa.sector" 
                     name="sector"
-                    class="form-control">
-              <option [value]="null">Sin sector asignado</option>
+                    required
+                    #sector="ngModel"
+                    class="form-control"
+                    [class.invalid]="sector.invalid && sector.touched">
+              <option [value]="null">Seleccionar sector</option>
               <option *ngFor="let sector of sectoresEconomicos" [value]="sector.sector_id">
                 {{ sector.nombre }}
               </option>
             </select>
+            <div *ngIf="sector.invalid && sector.touched" class="error-message">
+              El sector económico es obligatorio
+            </div>
           </div>
           
           <div class="form-group">
-            <label>Tamaño de Empresa</label>
+            <label>Tamaño de Empresa *</label>
             <select [(ngModel)]="empresa.tamano" 
                     name="tamano"
-                    class="form-control">
-              <option [value]="null">Sin tamaño asignado</option>
+                    required
+                    #tamano="ngModel"
+                    class="form-control"
+                    [class.invalid]="tamano.invalid && tamano.touched">
+              <option [value]="null">Seleccionar tamaño</option>
               <option *ngFor="let tamano of tamanosEmpresa" [value]="tamano.tamano_id">
                 {{ tamano.nombre }}
               </option>
+            </select>
+            <div *ngIf="tamano.invalid && tamano.touched" class="error-message">
+              El tamaño de empresa es obligatorio
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Cantidad de Empleados</label>
+            <input type="number" 
+                   [(ngModel)]="empresa.numero_empleados" 
+                   name="numero_empleados"
+                   placeholder="Número de empleados"
+                   min="0"
+                   class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label>Dirección *</label>
+            <input type="text" 
+                   [(ngModel)]="empresa.direccion" 
+                   name="direccion"
+                   placeholder="Ingrese dirección"
+                   required
+                   #direccion="ngModel"
+                   class="form-control"
+                   [class.invalid]="direccion.invalid && direccion.touched">
+            <div *ngIf="direccion.invalid && direccion.touched" class="error-message">
+              La dirección es obligatoria
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Ciudad *</label>
+            <input type="text" 
+                   [(ngModel)]="empresa.ciudad" 
+                   name="ciudad"
+                   placeholder="Ingrese ciudad"
+                   required
+                   #ciudad="ngModel"
+                   class="form-control"
+                   [class.invalid]="ciudad.invalid && ciudad.touched">
+            <div *ngIf="ciudad.invalid && ciudad.touched" class="error-message">
+              La ciudad es obligatoria
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Departamento *</label>
+            <input type="text" 
+                   [(ngModel)]="empresa.departamento" 
+                   name="departamento"
+                   placeholder="Ingrese departamento"
+                   required
+                   #departamento="ngModel"
+                   class="form-control"
+                   [class.invalid]="departamento.invalid && departamento.touched">
+            <div *ngIf="departamento.invalid && departamento.touched" class="error-message">
+              El departamento es obligatorio
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" 
+                   [(ngModel)]="empresa.telefono" 
+                   name="telefono"
+                   placeholder="Ingrese teléfono"
+                   class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label>Sitio Web</label>
+            <input type="url" 
+                   [(ngModel)]="empresa.sitio_web" 
+                   name="sitio_web"
+                   placeholder="https://ejemplo.com"
+                   class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label>Email Empresa</label>
+            <input type="email" 
+                   [(ngModel)]="empresa.email_empresa" 
+                   name="email_empresa"
+                   placeholder="correo@empresa.com"
+                   class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label>Descripción (Actividad Económica) *</label>
+            <textarea [(ngModel)]="empresa.actividad_economica" 
+                      name="actividad_economica"
+                      placeholder="Descripción de la actividad económica"
+                      required
+                      #actividadEconomica="ngModel"
+                      class="form-control"
+                      rows="3"
+                      [class.invalid]="actividadEconomica.invalid && actividadEconomica.touched"></textarea>
+            <div *ngIf="actividadEconomica.invalid && actividadEconomica.touched" class="error-message">
+              La actividad económica es obligatoria
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Estado</label>
+            <select [(ngModel)]="empresa.estado" 
+                    name="estado"
+                    class="form-control">
+              <option [value]="true">Activo</option>
+              <option [value]="false">Inactivo</option>
             </select>
           </div>
         </div>
@@ -85,94 +228,167 @@
 
       <!-- Contact Information Section -->
       <div class="form-section">
-        <div class="section-header">
-          <h3 class="section-title">Información de Contacto</h3>
-          <button type="button" 
-                  class="toggle-button" 
-                  (click)="toggleContactForm()">
-            {{ showContactForm ? 'Ocultar' : 'Mostrar' }} Formulario de Contacto
-          </button>
-        </div>
-        
-        <div *ngIf="!showContactForm && contactoPrincipal.nombre" class="contact-preview">
-          <p><strong>Contacto Principal:</strong> {{ contactoPrincipal.nombre }}</p>
-          <p><strong>Email:</strong> {{ contactoPrincipal.email }}</p>
-          <p><strong>Teléfono:</strong> {{ contactoPrincipal.telefono }}</p>
-        </div>
-        
-        <div *ngIf="showContactForm" class="contact-form">
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Nombre del Contacto</label>
-              <input type="text" 
-                     [(ngModel)]="contactoPrincipal.nombre" 
-                     name="contactoNombre"
-                     placeholder="Ingrese nombre del contacto"
-                     class="form-control">
+        <h3 class="section-title">Información de Contacto</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Responsable (Nombre Persona de Contacto) *</label>
+            <input type="text" 
+                   [(ngModel)]="empresa.nombre_persona_contacto_empresa" 
+                   name="nombre_persona_contacto_empresa"
+                   placeholder="Nombre completo del responsable"
+                   required
+                   #nombreContacto="ngModel"
+                   class="form-control"
+                   [class.invalid]="nombreContacto.invalid && nombreContacto.touched">
+            <div *ngIf="nombreContacto.invalid && nombreContacto.touched" class="error-message">
+              El nombre del responsable es obligatorio
             </div>
-            
-            <div class="form-group">
-              <label>Correo Electrónico</label>
-              <input type="email" 
-                     [(ngModel)]="contactoPrincipal.email" 
-                     name="contactoCorreo"
-                     placeholder="Ingrese correo del contacto"
-                     class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label>Identificación</label>
+            <input type="text" 
+                   [(ngModel)]="identificacion_contacto" 
+                   name="identificacion_contacto"
+                   placeholder="Número de identificación"
+                   class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label>Cargo *</label>
+            <input type="text" 
+                   [(ngModel)]="empresa.cargo_persona_contacto_empresa" 
+                   name="cargo_persona_contacto_empresa"
+                   placeholder="Cargo del responsable"
+                   required
+                   #cargoContacto="ngModel"
+                   class="form-control"
+                   [class.invalid]="cargoContacto.invalid && cargoContacto.touched">
+            <div *ngIf="cargoContacto.invalid && cargoContacto.touched" class="error-message">
+              El cargo es obligatorio
             </div>
-            
-            <div class="form-group">
-              <label>Teléfono</label>
-              <input type="tel" 
-                     [(ngModel)]="contactoPrincipal.telefono" 
-                     name="contactoTelefono"
-                     placeholder="Ingrese teléfono del contacto"
-                     class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label>Celular</label>
+            <input type="text" 
+                   [(ngModel)]="empresa.numero_persona_contacto_empresa" 
+                   name="numero_persona_contacto_empresa"
+                   placeholder="Número de celular"
+                   class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label>Email *</label>
+            <input type="email" 
+                   [(ngModel)]="empresa.email_empresa" 
+                   name="email_empresa"
+                   placeholder="correo@empresa.com"
+                   required
+                   #emailEmpresa="ngModel"
+                   class="form-control"
+                   [class.invalid]="emailEmpresa.invalid && emailEmpresa.touched">
+            <div *ngIf="emailEmpresa.invalid && emailEmpresa.touched" class="error-message">
+              El email es obligatorio
             </div>
-            
-            <div class="form-group">
-              <label>Tipo de Contacto</label>
-              <select [(ngModel)]="contactoPrincipal.tipo" 
-                      name="tipoContacto"
-                      class="form-control">
-                <option [value]="null">Sin tipo asignado</option>
-                <option *ngFor="let tipo of tiposContacto" [value]="tipo.tipo_id">
-                  {{ tipo.nombre }}
-                </option>
-              </select>
-            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Correo Alternativo</label>
+            <input type="email" 
+                   [(ngModel)]="correo_alternativo" 
+                   name="correo_alternativo"
+                   placeholder="correo.alternativo@empresa.com"
+                   class="form-control">
           </div>
         </div>
       </div>
-
-      <!-- Current Data Display -->
+      
+      <!-- Convenio Section -->
       <div class="form-section">
-        <h3 class="section-title">Información Actual</h3>
-        <div class="current-data">
-          <div class="data-item">
-            <label>Sector Actual:</label>
-            <span>{{ getSectorNombre(empresa.sector) }}</span>
+        <h3 class="section-title">Información de Convenio</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Estado del Convenio</label>
+            <select [(ngModel)]="empresa.estado_convenio" 
+                    name="estado_convenio"
+                    class="form-control">
+              <option value="Vigente">Vigente</option>
+              <option value="No Vigente">No Vigente</option>
+              <option value="En Trámite">En Trámite</option>
+            </select>
           </div>
-          <div class="data-item">
-            <label>Tamaño Actual:</label>
-            <span>{{ getTamanoDescripcion(empresa.tamano) }}</span>
+          
+          <div class="form-group">
+            <label>Fecha de Convenio</label>
+            <input type="date" 
+                   [(ngModel)]="empresa.fecha_convenio" 
+                   name="fecha_convenio"
+                   class="form-control">
           </div>
-          <div class="data-item" *ngIf="contactoPrincipal.nombre">
-            <label>Contacto Principal:</label>
-            <span>{{ contactoPrincipal.nombre }} ({{ contactoPrincipal.email }})</span>
+          
+          <div class="form-group">
+            <label>URL del Convenio</label>
+            <input type="url" 
+                   [(ngModel)]="empresa.convenio_url" 
+                   name="convenio_url"
+                   placeholder="URL del documento del convenio"
+                   class="form-control">
           </div>
+        </div>
+      </div>
+      
+      <!-- Información Laboral Section -->
+      <div class="form-section">
+        <h3 class="section-title">Información Laboral</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Horario Laboral</label>
+            <textarea [(ngModel)]="empresa.horario_laboral" 
+                      name="horario_laboral"
+                      placeholder="Ej: Lunes a Viernes 8:00 AM - 6:00 PM"
+                      class="form-control"
+                      rows="3"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>Trabaja Sábado</label>
+            <select [(ngModel)]="empresa.trabaja_sabado" 
+                    name="trabaja_sabado"
+                    class="form-control">
+              <option [value]="false">No</option>
+              <option [value]="true">Sí</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Cuota SENA</label>
+            <input type="number" 
+                   [(ngModel)]="empresa.cuota_sena" 
+                   name="cuota_sena"
+                   placeholder="Cuota SENA"
+                   min="0"
+                   class="form-control">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Observaciones Section -->
+      <div class="form-section">
+        <h3 class="section-title">Observaciones</h3>
+        <div class="form-group">
+          <textarea [(ngModel)]="empresa.observaciones" 
+                    name="observaciones"
+                    placeholder="Ingrese observaciones adicionales..."
+                    class="form-control"
+                    rows="4"></textarea>
         </div>
       </div>
 
       <!-- Form Status -->
-      <div class="form-status" *ngIf="!isValidEmpresaForm() || hasAnyChanges()">
-        <div *ngIf="!isValidEmpresaForm()" class="validation-warning">
+      <div class="form-status" *ngIf="!isValidEmpresaForm()">
+        <div class="validation-warning">
           ⚠️ Complete todos los campos obligatorios (*)
-        </div>
-        <div *ngIf="hasEmpresaChanges() && isValidEmpresaForm()" class="changes-detected">
-          📝 Se detectaron cambios en la información de la empresa
-        </div>
-        <div *ngIf="hasContactoChanges() && showContactForm" class="changes-detected">
-          📞 Se detectaron cambios en la información de contacto
         </div>
       </div>
 
@@ -185,12 +401,6 @@
           {{ isSaving ? 'Guardando...' : 'Guardar Cambios' }}
         </button>
         <button type="button" 
-                class="btn-reset" 
-                (click)="resetForm()"
-                [disabled]="isSaving || !hasAnyChanges()">
-          Resetear
-        </button>
-        <button type="button" 
                 class="btn-cancelar" 
                 (click)="cancelar()"
                 [disabled]="isSaving">
@@ -199,18 +409,6 @@
       </div>
     </form>
 
-    <!-- Additional Actions -->
-    <div class="additional-actions">
-      <h3 class="section-title">Acciones Adicionales</h3>
-      <div class="action-buttons-grid">
-        <button class="action-button" (click)="navigateToInformacionEmpresa()">
-          Ver Información Completa
-        </button>
-        <button class="action-button" (click)="navigateToPublicarOferta()">
-          Publicar Nueva Oferta
-        </button>
-      </div>
-    </div>
   </div>
 </div>
 

@@ -123,7 +123,9 @@ export class PublicarOfertaComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error creando oferta:', error);
-        this.error = 'Error al publicar la oferta. Por favor, intente de nuevo.';
+        console.error('Detalles del error:', error.error);
+        const errorMessage = error.error?.error || error.error?.message || error.message || 'Error desconocido';
+        this.error = `Error al publicar la oferta: ${errorMessage}. Por favor, intente de nuevo.`;
         this.isLoading = false;
       }
     });

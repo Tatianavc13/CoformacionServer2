@@ -24,7 +24,7 @@
       <h2 class="section-title">INFORMACIÓN: {{ companyInfo.nombreComercial || companyInfo.razonSocial }}</h2>
       
       <div class="company-logo">
-        <img src="assets/logoEmpresa.png" alt="Logo de la empresa">
+        <img [src]="logoUrl" alt="Logo de la empresa" (error)="logoUrl = 'assets/logoEmpresa.png'">
       </div>
 
       <div class="info-grid">
