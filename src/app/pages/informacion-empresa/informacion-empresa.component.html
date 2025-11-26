@@ -20,7 +20,10 @@
   <!-- Company Information -->
   <div class="company-section">
     <div class="company-logo">
-      <img [src]="logoUrl" alt="Logo de la empresa" (error)="logoUrl = 'assets/logoEmpresa.png'">
+      <img 
+        [src]="logoBase64 || logoUrl" 
+        alt="Logo de la empresa" 
+        (error)="logoBase64 = null; logoUrl = 'assets/logoEmpresa.png'">
     </div>
     
     <div class="info-grid">

@@ -112,6 +112,7 @@ export interface Empresa {
   fecha_creacion?: string;
   fecha_actualizacion?: string;
   nit?: string | null;
+  imagen_url_base64?: string | null; // Imagen en formato base64
   // logo_url?: string | null;  // Comentado temporalmente
 }
 
@@ -137,14 +138,16 @@ export interface ContactoEmpresa {
 }
 
 export interface OfertaEmpresa {
-  oferta_id: number;
+  oferta_id?: number;
   empresa: number;
+  empresa_id?: number; // Campo adicional para compatibilidad con el backend
   descripcion: string;
   fecha_inicio: string;
   fecha_fin: string;
   programa_id?: number;
   tipo_oferta?: string;
   apoyo_economico?: string;
+  valor_apoyo_economico?: number; // Valor numérico del apoyo económico cuando apoyo_economico es 'Si'
   nombre_responsable?: string;
   modalidad?: string;
 }

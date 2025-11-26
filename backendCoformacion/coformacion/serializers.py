@@ -245,12 +245,23 @@ class EstudianteSerializer(serializers.ModelSerializer):
 class OfertasEmpresasSerializer(serializers.ModelSerializer):
     empresa_nombre = serializers.CharField(source='empresa.nombre_comercial', read_only=True)
     programa_nombre = serializers.CharField(source='programa_id.nombre', read_only=True)
+    # Definir empresa explícitamente para aceptar IDs
+    # required=True pero lo validamos manualmente para mejor control
+    empresa = serializers.PrimaryKeyRelatedField(queryset=Empresas.objects.all(), required=True)
+    # Hacer campos opcionales en el serializer (manejaremos defaults en create)
+    nacional = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    nombreTutor = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    apoyoEconomico = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    modalidad = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    nombreEmpresa = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    programa_id = serializers.PrimaryKeyRelatedField(queryset=Programas.objects.all(), required=False, allow_null=True)
+    Ofrece_apoyo = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = OfertasEmpresas
         # Usar fields en lugar de exclude para tener control total
         fields = ['idOferta', 'nacional', 'nombreTutor', 'apoyoEconomico', 
-                 'modalidad', 'nombreEmpresa', 'empresa', 'programa_id',
+                 'modalidad', 'nombreEmpresa', 'empresa', 'programa_id', 'Ofrece_apoyo',
                  'empresa_nombre', 'programa_nombre']
         extra_fields = ['empresa_nombre', 'programa_nombre']
     
@@ -272,10 +283,16 @@ class OfertasEmpresasSerializer(serializers.ModelSerializer):
                 existing_columns = [row[0] for row in cursor.fetchall()]
             
             # Excluir cualquier campo que no exista en la BD
+            # IMPORTANTE: 'empresa' es un ForeignKey, la columna en BD es 'empresa_id'
+            # No debemos remover 'empresa' porque es el campo del modelo Django
             campos_para_remover = []
             for campo in self.fields.keys():
                 # Mantener campos especiales como empresa_nombre, programa_nombre (read_only)
                 if campo in ['empresa_nombre', 'programa_nombre']:
+                    continue
+                # Mantener campos de ForeignKey (empresa, programa_id) aunque no estén en existing_columns
+                # porque las columnas en BD son empresa_id y programa_id
+                if campo in ['empresa', 'programa_id']:
                     continue
                 # Si el campo no existe en la BD y no es un campo especial, excluirlo
                 if campo not in existing_columns and campo not in ['idOferta']:
@@ -295,13 +312,64 @@ class OfertasEmpresasSerializer(serializers.ModelSerializer):
         # Hacer una copia para no modificar los datos originales
         data = data.copy() if hasattr(data, 'copy') else dict(data)
         
-        # Asegurar que empresa esté presente (puede venir como empresa o empresa_id)
-        if 'empresa' not in data or not data.get('empresa'):
-            if 'empresa_id' in data and data.get('empresa_id'):
-                data['empresa'] = data['empresa_id']
-                print(f"✓ empresa_id mapeado a empresa: {data['empresa']}")
+        # CRÍTICO: Asegurar que empresa esté presente ANTES de la validación
+        # Puede venir como empresa, empresa_id, o ambos
+        empresa_value = None
+        
+        # Prioridad 1: Si viene como 'empresa'
+        if 'empresa' in data:
+            empresa_value = data.get('empresa')
+            # Verificar que no sea None, 0, o string vacío
+            if empresa_value is None or empresa_value == 0 or empresa_value == '':
+                empresa_value = None
             else:
-                print(f"⚠ ADVERTENCIA: No se encontró empresa ni empresa_id en los datos")
+                # Convertir a entero si es string
+                try:
+                    if isinstance(empresa_value, str):
+                        empresa_value = int(empresa_value.strip()) if empresa_value.strip() else None
+                    elif isinstance(empresa_value, (int, float)):
+                        empresa_value = int(empresa_value)
+                except (ValueError, TypeError):
+                    empresa_value = None
+        
+        # Prioridad 2: Si no está en 'empresa', buscar en 'empresa_id'
+        if not empresa_value and 'empresa_id' in data:
+            empresa_value = data.get('empresa_id')
+            if empresa_value is not None and empresa_value != 0 and empresa_value != '':
+                try:
+                    if isinstance(empresa_value, str):
+                        empresa_value = int(empresa_value.strip()) if empresa_value.strip() else None
+                    elif isinstance(empresa_value, (int, float)):
+                        empresa_value = int(empresa_value)
+                except (ValueError, TypeError):
+                    empresa_value = None
+        
+        # Si encontramos un valor válido, asegurar que esté en 'empresa'
+        if empresa_value and empresa_value != 0:
+            # Verificar que la empresa exista en la BD
+            try:
+                from .models import Empresas
+                empresa_obj = Empresas.objects.get(pk=empresa_value)
+                # PrimaryKeyRelatedField acepta el ID directamente como entero
+                data['empresa'] = empresa_value
+                print(f"✓ empresa mapeado correctamente: {empresa_value} (empresa existe: {empresa_obj.nombre_comercial or empresa_obj.razon_social})")
+            except Empresas.DoesNotExist:
+                print(f"❌ ERROR: Empresa con ID {empresa_value} no existe en la base de datos")
+                raise serializers.ValidationError({
+                    'empresa': f'La empresa con ID {empresa_value} no existe. Verifica el ID de empresa.'
+                })
+            except Exception as e:
+                print(f"❌ ERROR al buscar empresa: {e}")
+                raise serializers.ValidationError({
+                    'empresa': f'Error al validar la empresa: {str(e)}'
+                })
+        else:
+            # Si no hay valor válido, lanzar error inmediatamente
+            print(f"❌ ERROR: empresa no encontrado o inválido en los datos recibidos")
+            print(f"Datos recibidos: {data}")
+            raise serializers.ValidationError({
+                'empresa': 'El campo empresa es requerido. Asegúrate de estar autenticado como empresa y que el ID sea válido.'
+            })
         
         # Mapear tipo_oferta a nacional antes de la validación
         # tipo_oferta: 'Nacional' -> nacional: 'Si'
@@ -317,26 +385,46 @@ class OfertasEmpresasSerializer(serializers.ModelSerializer):
             # Remover tipo_oferta ya que no existe en la BD
             del data['tipo_oferta']
         
-        # Convertir "Si"/"No" a boolean para apoyo_economico (que es BooleanField)
-        # Solo si el campo existe en la BD
-        if 'apoyo_economico' in data and data['apoyo_economico'] is not None:
-            print(f"APOYO ECONOMICO ORIGINAL: {data['apoyo_economico']}")
-            if isinstance(data['apoyo_economico'], str):
-                if data['apoyo_economico'].lower() == 'si' or data['apoyo_economico'] == 'Si':
-                    data['apoyo_economico'] = True
-                elif data['apoyo_economico'].lower() == 'no' or data['apoyo_economico'] == 'No':
-                    data['apoyo_economico'] = False
-            print(f"APOYO ECONOMICO CONVERTIDO: {data['apoyo_economico']}")
-        elif 'apoyo_economico' not in data:
-            # Si no se envía, usar False por defecto (solo si el campo existe en la BD)
-            pass  # No agregar si no existe en la BD
+        # Mapear nombre_responsable a nombreTutor
+        if 'nombre_responsable' in data and 'nombreTutor' not in data:
+            data['nombreTutor'] = data['nombre_responsable']
+            del data['nombre_responsable']
         
-        # Asegurar que empresa sea un entero si viene como string
-        if 'empresa' in data and isinstance(data['empresa'], str):
-            try:
-                data['empresa'] = int(data['empresa'])
-            except (ValueError, TypeError):
-                pass
+        # Mapear apoyo_economico a apoyoEconomico y Ofrece_apoyo
+        # apoyo_economico viene como 'Si' o 'No' del frontend
+        # apoyoEconomico en la BD es un decimal NOT NULL
+        # Ofrece_apoyo guarda 'Si' o 'No'
+        if 'apoyo_economico' in data:
+            apoyo_economico_value = data.get('apoyo_economico', 'No')
+            # Guardar Si/No en Ofrece_apoyo
+            data['Ofrece_apoyo'] = 'Si' if apoyo_economico_value == 'Si' else 'No'
+            
+            # Si es 'Si', usar el valor del campo valor_apoyo_economico si viene, sino 0.01
+            if apoyo_economico_value == 'Si':
+                # Buscar el valor del apoyo económico en valor_apoyo_economico
+                valor_apoyo = data.get('valor_apoyo_economico', None)
+                if valor_apoyo is not None and valor_apoyo != '':
+                    try:
+                        # Convertir a decimal
+                        from decimal import Decimal
+                        data['apoyoEconomico'] = Decimal(str(valor_apoyo))
+                    except (ValueError, TypeError):
+                        data['apoyoEconomico'] = 0.01  # Valor por defecto si no se puede convertir
+                else:
+                    data['apoyoEconomico'] = 0.01  # Valor mínimo para indicar que sí hay apoyo
+            else:
+                data['apoyoEconomico'] = 0.00
+            # Remover apoyo_economico y valor_apoyo_economico ya que no existen en la BD
+            if 'apoyo_economico' in data:
+                del data['apoyo_economico']
+            if 'valor_apoyo_economico' in data:
+                del data['valor_apoyo_economico']
+        
+        # Remover campos que no existen en la BD
+        campos_a_remover = ['descripcion', 'fecha_inicio', 'fecha_fin']
+        for campo in campos_a_remover:
+            if campo in data:
+                del data[campo]
         
         # Asegurar que programa_id sea un entero si viene como string
         if 'programa_id' in data and data['programa_id'] is not None:
@@ -346,199 +434,324 @@ class OfertasEmpresasSerializer(serializers.ModelSerializer):
                 except (ValueError, TypeError):
                     pass
         
+        # Establecer valores por defecto para campos requeridos si no están presentes
+        # Esto ayuda a evitar errores de validación más adelante
+        if 'nacional' not in data or data.get('nacional') is None or data.get('nacional') == '':
+            data['nacional'] = 'No'
+        
+        if 'modalidad' not in data or data.get('modalidad') is None or data.get('modalidad') == '':
+            data['modalidad'] = 'Presencial'
+        
+        # Asegurar que apoyoEconomico siempre tenga un valor decimal válido
+        if 'apoyoEconomico' not in data or data.get('apoyoEconomico') is None:
+            data['apoyoEconomico'] = 0.00
+        else:
+            # Asegurar que sea un número si viene como string
+            try:
+                if isinstance(data['apoyoEconomico'], str):
+                    data['apoyoEconomico'] = float(data['apoyoEconomico'])
+            except (ValueError, TypeError):
+                data['apoyoEconomico'] = 0.00
+        
         print(f"DATOS ANTES DE VALIDACION: {data}")
+        
+        # Validación explícita de empresa ANTES de llamar a super()
+        # Ya debería estar mapeado en el bloque anterior, pero verificamos de nuevo
+        if 'empresa' not in data or data.get('empresa') is None or data.get('empresa') == 0:
+            print(f"❌ ERROR: empresa es requerido pero no está presente o es inválido")
+            print(f"Datos completos recibidos: {data}")
+            raise serializers.ValidationError({
+                'empresa': 'El campo empresa es requerido. Asegúrate de estar autenticado como empresa.'
+            })
         
         try:
             result = super().to_internal_value(data)
             print(f"VALIDACION EXITOSA: {result}")
+            
+            # Validación adicional después de la validación base
+            # PrimaryKeyRelatedField convierte el ID a un objeto, verificar que esté presente
+            empresa_obj = result.get('empresa')
+            if empresa_obj is None:
+                print(f"⚠ ADVERTENCIA: empresa no está en el resultado de validación")
+                print(f"Resultado: {result}")
+                raise serializers.ValidationError({
+                    'empresa': 'El campo empresa es requerido y debe ser un ID válido de empresa.'
+                })
+            
+            # Asegurar que empresa esté en el resultado (puede ser objeto o ID)
+            if not hasattr(empresa_obj, 'empresa_id') and not hasattr(empresa_obj, 'pk'):
+                # Si no es un objeto, intentar convertirlo
+                try:
+                    from .models import Empresas
+                    empresa_id = int(empresa_obj) if not isinstance(empresa_obj, Empresas) else empresa_obj.pk
+                    result['empresa'] = Empresas.objects.get(pk=empresa_id)
+                    print(f"✓ empresa convertido a objeto: {result['empresa']}")
+                except (ValueError, TypeError, Empresas.DoesNotExist):
+                    raise serializers.ValidationError({
+                        'empresa': 'El campo empresa debe ser un ID válido de empresa.'
+                    })
+            
+            print(f"✓ Validación completa exitosa, empresa: {result.get('empresa')}")
             return result
+        except serializers.ValidationError as ve:
+            # Re-lanzar errores de validación con mejor mensaje
+            print(f"Error de validación capturado: {ve.detail}")
+            if 'empresa' in str(ve.detail) or 'empresa' in ve.detail:
+                # Si ya es un error de empresa, re-lanzarlo tal cual
+                raise
+            raise serializers.ValidationError({
+                'empresa': 'El campo empresa es requerido. Verifica que el ID de empresa sea válido.'
+            })
         except Exception as e:
             import traceback
             error_trace = traceback.format_exc()
             print(f"ERROR EN VALIDACION: {e}")
             print(error_trace)
-            raise serializers.ValidationError(f"Error de validación: {str(e)}")
+            raise serializers.ValidationError({
+                'empresa': f'Error de validación: {str(e)}'
+            })
+    
+    def validate_empresa(self, value):
+        """
+        Validación explícita del campo empresa
+        """
+        print(f"validate_empresa llamado con valor: {value}, tipo: {type(value)}")
+        
+        if value is None:
+            raise serializers.ValidationError('El campo empresa es requerido.')
+        
+        # Si es un objeto Empresas, está bien
+        if hasattr(value, 'empresa_id') or hasattr(value, 'pk'):
+            print(f"✓ empresa es un objeto válido: {value}")
+            return value
+        
+        # Si es un ID, intentar obtener el objeto
+        try:
+            from .models import Empresas
+            empresa_id = int(value)
+            empresa = Empresas.objects.get(pk=empresa_id)
+            print(f"✓ empresa ID {empresa_id} encontrado: {empresa.nombre_comercial or empresa.razon_social}")
+            return empresa
+        except (ValueError, TypeError):
+            raise serializers.ValidationError(f'El valor de empresa debe ser un ID válido, recibido: {value}')
+        except Empresas.DoesNotExist:
+            raise serializers.ValidationError(f'La empresa con ID {value} no existe en la base de datos.')
 
     def create(self, validated_data):
         """
-        Crear una oferta mapeando correctamente los campos a los nombres de columna de la BD
-        Estructura real de la tabla ofertasempresas:
-        - idOferta (PK, auto)
-        - nacional (enum: 'No','Si')
-        - nombreTutor (varchar 40)
-        - apoyoEconomico (decimal 10,2)
-        - modalidad (enum: 'Presencial','Virtual','Híbrido')
-        - nombreEmpresa (varchar 255)
-        - empresa_id (FK)
-        - programa_id (FK, nullable)
+        Crear una oferta mapeando correctamente los campos a los nombres de columna de la BD.
+        El campo 'empresa' puede venir como ID (int) o como objeto Empresas.
         """
-        # Columnas que realmente existen en la BD
-        columnas_reales = [
-            'idOferta', 'nacional', 'nombreTutor', 'apoyoEconomico', 
-            'modalidad', 'nombreEmpresa', 'empresa_id', 'programa_id'
-        ]
+        print(f"Validated data recibido en create: {validated_data}")
         
-        # Crear diccionario con los nombres de columna correctos
+        # Preparar datos para crear la oferta
         data_para_crear = {}
         
-        # Mapear campos del frontend a columnas de la BD
-        # nacional ya está mapeado en to_internal_value
-        if 'nacional' in validated_data:
-            data_para_crear['nacional'] = validated_data['nacional']
+        # Mapear nacional (ya procesado en to_internal_value)
+        # Asegurar que siempre sea 'No' o 'Si', nunca None o vacío
+        nacional_value = validated_data.get('nacional', 'No')
+        if nacional_value is None or nacional_value == '':
+            nacional_value = 'No'
+        elif nacional_value not in ['No', 'Si']:
+            nacional_value = 'No'
+        data_para_crear['nacional'] = nacional_value
         
-        # nombre_responsable -> nombreTutor
-        if 'nombre_responsable' in validated_data:
-            data_para_crear['nombreTutor'] = validated_data['nombre_responsable'][:40]  # Limitar a 40 caracteres
-        elif 'nombreTutor' in validated_data:
-            data_para_crear['nombreTutor'] = validated_data['nombreTutor'][:40]
+        # Mapear nombre_responsable -> nombreTutor
+        # Asegurar que siempre tenga un valor válido, nunca None o vacío
+        nombre_tutor = None
+        if 'nombre_responsable' in validated_data and validated_data['nombre_responsable']:
+            nombre_tutor = str(validated_data['nombre_responsable']).strip()[:40]
+        elif 'nombreTutor' in validated_data and validated_data['nombreTutor']:
+            nombre_tutor = str(validated_data['nombreTutor']).strip()[:40]
         
-        # apoyo_economico -> apoyoEconomico (convertir "Si"/"No" a decimal)
-        if 'apoyo_economico' in validated_data:
-            apoyo = validated_data['apoyo_economico']
-            if isinstance(apoyo, bool):
-                # Si es boolean, usar 0 o un valor por defecto
-                data_para_crear['apoyoEconomico'] = 0.00
-            elif isinstance(apoyo, str):
-                # Si es "Si", usar un valor por defecto, si es "No", usar 0
-                data_para_crear['apoyoEconomico'] = 0.00 if apoyo.lower() == 'no' else 0.00
-            else:
-                data_para_crear['apoyoEconomico'] = float(apoyo) if apoyo else 0.00
-        elif 'apoyoEconomico' in validated_data:
-            data_para_crear['apoyoEconomico'] = validated_data['apoyoEconomico']
+        # Asegurar que nombreTutor nunca sea None, vacío o solo espacios
+        if not nombre_tutor or nombre_tutor.strip() == '':
+            nombre_tutor = 'Sin especificar'
+        
+        # Asegurar que no exceda 40 caracteres
+        nombre_tutor = nombre_tutor[:40] if len(nombre_tutor) > 40 else nombre_tutor
+        data_para_crear['nombreTutor'] = nombre_tutor
+        
+        # Mapear apoyoEconomico
+        # Asegurar que siempre sea un decimal válido, nunca None
+        from decimal import Decimal
+        apoyo_economico = validated_data.get('apoyoEconomico')
+        if apoyo_economico is None:
+            apoyo_economico = Decimal('0.00')
         else:
-            data_para_crear['apoyoEconomico'] = 0.00
+            try:
+                apoyo_economico = Decimal(str(apoyo_economico))
+            except (ValueError, TypeError):
+                apoyo_economico = Decimal('0.00')
+        data_para_crear['apoyoEconomico'] = apoyo_economico
         
-        # modalidad
-        if 'modalidad' in validated_data:
-            data_para_crear['modalidad'] = validated_data['modalidad']
+        # Mapear modalidad
+        # Asegurar que siempre sea uno de los valores válidos del enum
+        modalidad_value = validated_data.get('modalidad', 'Presencial')
+        if modalidad_value is None or modalidad_value == '':
+            modalidad_value = 'Presencial'
+        elif modalidad_value not in ['Presencial', 'Virtual', 'Híbrido']:
+            modalidad_value = 'Presencial'
+        data_para_crear['modalidad'] = modalidad_value
         
-        # nombreEmpresa
-        if 'nombreEmpresa' in validated_data:
-            data_para_crear['nombreEmpresa'] = validated_data['nombreEmpresa']
-        
-        # empresa (ForeignKey - REQUERIDO, Django espera el objeto, no el ID)
-        empresa_obj = None
-        empresa_value = validated_data.get('empresa') or validated_data.get('empresa_id')
-        
-        print(f"Intentando obtener empresa. Valor recibido: {empresa_value}, Tipo: {type(empresa_value)}")
-        
-        if empresa_value:
-            # Si es un objeto, usarlo directamente
-            if hasattr(empresa_value, 'empresa_id') or hasattr(empresa_value, 'pk'):
-                empresa_obj = empresa_value
-                print(f"✓ Empresa es un objeto: {empresa_obj}")
-            else:
-                # Si es un número, obtener el objeto
-                from .models import Empresas
-                try:
-                    empresa_id = int(empresa_value)
-                    print(f"Buscando empresa con ID: {empresa_id}")
-                    empresa_obj = Empresas.objects.get(pk=empresa_id)
-                    print(f"✓ Empresa obtenida correctamente: ID {empresa_id}, Nombre: {empresa_obj.nombre_comercial or empresa_obj.razon_social}")
-                except Empresas.DoesNotExist:
-                    print(f"ERROR: No se encontró empresa con ID {empresa_value}")
-                    raise serializers.ValidationError({
-                        'empresa': f'No se encontró una empresa con ID {empresa_value}'
-                    })
-                except (ValueError, TypeError) as e:
-                    print(f"ERROR: Valor inválido para empresa: {empresa_value}, Error: {e}")
-                    raise serializers.ValidationError({
-                        'empresa': f'El ID de empresa debe ser un número válido. Valor recibido: {empresa_value}'
-                    })
-        else:
-            print(f"ERROR: No se recibió valor para empresa. validated_data keys: {list(validated_data.keys())}")
-            raise serializers.ValidationError({
-                'empresa': 'El campo empresa es requerido. Debe proporcionar un ID de empresa válido.'
-            })
-        
-        data_para_crear['empresa'] = empresa_obj
-        print(f"✓ Empresa asignada correctamente al diccionario de creación")
-        
-        # programa_id (ForeignKey - puede ser None)
-        if 'programa_id' in validated_data:
-            programa_value = validated_data['programa_id']
-            if programa_value is not None and programa_value != '':
-                # Si es un objeto, usarlo directamente
-                if hasattr(programa_value, 'programa_id') or hasattr(programa_value, 'pk'):
-                    data_para_crear['programa_id'] = programa_value
-                else:
-                    # Si es un número, obtener el objeto
-                    from .models import Programas
-                    try:
-                        data_para_crear['programa_id'] = Programas.objects.get(pk=int(programa_value))
-                    except (Programas.DoesNotExist, ValueError, TypeError) as e:
-                        print(f"Error obteniendo programa con ID {programa_value}: {e}")
-                        data_para_crear['programa_id'] = None
-            else:
-                data_para_crear['programa_id'] = None
-        
-        # Asegurar que todos los campos requeridos tengan valores
-        if 'nacional' not in data_para_crear or not data_para_crear.get('nacional'):
-            data_para_crear['nacional'] = 'No'
-        if 'nombreTutor' not in data_para_crear or not data_para_crear.get('nombreTutor'):
-            data_para_crear['nombreTutor'] = 'Sin especificar'
-        if 'apoyoEconomico' not in data_para_crear or data_para_crear.get('apoyoEconomico') is None:
-            data_para_crear['apoyoEconomico'] = 0.00
-        if 'modalidad' not in data_para_crear or not data_para_crear.get('modalidad'):
-            data_para_crear['modalidad'] = 'Presencial'
-        if 'nombreEmpresa' not in data_para_crear or not data_para_crear.get('nombreEmpresa'):
-            # Intentar obtener el nombre de la empresa si tenemos el objeto
-            if 'empresa' in data_para_crear and data_para_crear['empresa']:
-                try:
-                    empresa = data_para_crear['empresa']
-                    if hasattr(empresa, 'nombre_comercial') and empresa.nombre_comercial:
-                        data_para_crear['nombreEmpresa'] = empresa.nombre_comercial
-                    elif hasattr(empresa, 'razon_social') and empresa.razon_social:
-                        data_para_crear['nombreEmpresa'] = empresa.razon_social
-                    else:
-                        data_para_crear['nombreEmpresa'] = 'Sin especificar'
-                except:
-                    data_para_crear['nombreEmpresa'] = 'Sin especificar'
-            else:
-                data_para_crear['nombreEmpresa'] = 'Sin especificar'
-        
-        # Verificación final: asegurar que empresa esté presente
-        if 'empresa' not in data_para_crear or data_para_crear.get('empresa') is None:
+        # Mapear empresa (ForeignKey) - CRÍTICO
+        # Con PrimaryKeyRelatedField, validated_data['empresa'] puede ser un objeto Empresas o un ID
+        empresa_value = validated_data.get('empresa')
+        if not empresa_value:
             raise serializers.ValidationError({
                 'empresa': 'El campo empresa es requerido'
             })
         
-        # Verificación final: asegurar que tipo_oferta NO esté presente
-        if 'tipo_oferta' in data_para_crear:
-            print(f"⚠ ERROR CRÍTICO: tipo_oferta encontrado en data_para_crear, removiéndolo...")
-            del data_para_crear['tipo_oferta']
+        # Si es un objeto, usarlo directamente; si es un ID, obtener el objeto
+        if hasattr(empresa_value, 'empresa_id'):
+            empresa_obj = empresa_value
+            empresa_id = empresa_obj.empresa_id
+        elif hasattr(empresa_value, 'pk'):
+            empresa_obj = empresa_value
+            empresa_id = empresa_obj.pk
+        else:
+            # Es un ID, necesitamos obtener el objeto
+            from .models import Empresas
+            try:
+                empresa_id = int(empresa_value)
+                empresa_obj = Empresas.objects.get(pk=empresa_id)
+            except (ValueError, TypeError, Empresas.DoesNotExist) as e:
+                raise serializers.ValidationError({
+                    'empresa': f'La empresa con ID {empresa_value} no existe o es inválida.'
+                })
         
-        # También remover cualquier otro campo que no exista en la BD
-        campos_permitidos = ['nacional', 'nombreTutor', 'apoyoEconomico', 'modalidad', 'nombreEmpresa', 'empresa', 'programa_id']
-        campos_finales = {}
-        for campo, valor in data_para_crear.items():
-            if campo in campos_permitidos:
-                campos_finales[campo] = valor
+        data_para_crear['empresa'] = empresa_obj
+        print(f"✓ Empresa asignada: ID {empresa_id} ({empresa_obj.nombre_comercial or empresa_obj.razon_social})")
+        
+        # Mapear nombreEmpresa - CRÍTICO: debe tener un valor válido
+        nombre_empresa = validated_data.get('nombreEmpresa')
+        if not nombre_empresa or nombre_empresa == '':
+            # Obtener nombreEmpresa de la empresa si no se proporcionó
+            try:
+                if hasattr(empresa_obj, 'nombre_comercial') and empresa_obj.nombre_comercial:
+                    nombre_empresa = str(empresa_obj.nombre_comercial).strip()[:255]
+                elif hasattr(empresa_obj, 'razon_social') and empresa_obj.razon_social:
+                    nombre_empresa = str(empresa_obj.razon_social).strip()[:255]
+                else:
+                    nombre_empresa = 'Sin especificar'
+            except Exception as e:
+                print(f"Error al obtener nombre de empresa: {e}")
+                nombre_empresa = 'Sin especificar'
+        
+        # Asegurar que nombreEmpresa no esté vacío
+        if not nombre_empresa or nombre_empresa.strip() == '':
+            nombre_empresa = 'Sin especificar'
+        
+        data_para_crear['nombreEmpresa'] = nombre_empresa[:255]  # Limitar a 255 caracteres
+        
+        # Mapear programa_id (ForeignKey opcional)
+        if 'programa_id' in validated_data:
+            programa_value = validated_data['programa_id']
+            if programa_value is not None and programa_value != '':
+                if hasattr(programa_value, 'programa_id') or hasattr(programa_value, 'pk'):
+                    data_para_crear['programa_id'] = programa_value
+                else:
+                    from .models import Programas
+                    try:
+                        data_para_crear['programa_id'] = Programas.objects.get(pk=int(programa_value))
+                    except (Programas.DoesNotExist, ValueError, TypeError):
+                        data_para_crear['programa_id'] = None
             else:
-                print(f"⚠ EXCLUYENDO campo '{campo}' de la creación (no permitido)")
+                data_para_crear['programa_id'] = None
+        else:
+            data_para_crear['programa_id'] = None
+        
+        # Mapear Ofrece_apoyo
+        # Si viene en validated_data, usarlo; si no, determinar basado en apoyoEconomico
+        ofrece_apoyo_value = validated_data.get('Ofrece_apoyo', None)
+        if ofrece_apoyo_value is None or ofrece_apoyo_value == '':
+            # Si no viene explícitamente, determinar basado en apoyoEconomico
+            # Si apoyoEconomico > 0, entonces Ofrece_apoyo = 'Si', sino 'No'
+            if apoyo_economico and apoyo_economico > 0:
+                ofrece_apoyo_value = 'Si'
+            else:
+                ofrece_apoyo_value = 'No'
+        elif ofrece_apoyo_value not in ['Si', 'No']:
+            ofrece_apoyo_value = 'No'
+        data_para_crear['Ofrece_apoyo'] = ofrece_apoyo_value
+        
+        # Remover campos que no existen en el modelo
+        campos_permitidos = ['nacional', 'nombreTutor', 'apoyoEconomico', 'modalidad', 'nombreEmpresa', 'empresa', 'programa_id', 'Ofrece_apoyo']
+        campos_finales = {k: v for k, v in data_para_crear.items() if k in campos_permitidos}
+        
+        # Validar que todos los campos requeridos estén presentes y no sean None
+        campos_requeridos = {
+            'nacional': data_para_crear.get('nacional'),
+            'nombreTutor': data_para_crear.get('nombreTutor'),
+            'apoyoEconomico': data_para_crear.get('apoyoEconomico'),
+            'modalidad': data_para_crear.get('modalidad'),
+            'nombreEmpresa': data_para_crear.get('nombreEmpresa'),
+            'empresa': data_para_crear.get('empresa')
+        }
+        
+        for campo, valor in campos_requeridos.items():
+            if valor is None:
+                raise serializers.ValidationError({
+                    campo: f'El campo {campo} es requerido y no puede ser None'
+                })
         
         print(f"Creando oferta con campos: {list(campos_finales.keys())}")
-        print(f"Valores: {campos_finales}")
+        print(f"Valores: nacional={campos_finales.get('nacional')}, nombreTutor={campos_finales.get('nombreTutor')}, apoyoEconomico={campos_finales.get('apoyoEconomico')}, modalidad={campos_finales.get('modalidad')}, nombreEmpresa={campos_finales.get('nombreEmpresa')}")
         
         try:
-            # Usar el manager directamente con solo los campos permitidos
             oferta = OfertasEmpresas.objects.create(**campos_finales)
+            print(f"✓ Oferta creada exitosamente: ID {oferta.idOferta}")
             return oferta
         except Exception as e:
             import traceback
             error_trace = traceback.format_exc()
             print(f"Error al crear oferta: {e}")
-            print(f"Error completo:\n{error_trace}")
-            print(f"Datos que se intentaron crear: {data_para_crear}")
+            print(error_trace)
+            print(f"Datos que se intentaron insertar: {campos_finales}")
             raise serializers.ValidationError({
                 'error': f'Error al crear la oferta: {str(e)}',
                 'details': str(e)
             })
 
     def to_representation(self, instance):
-        # Convertir boolean a "Si"/"No" para la respuesta
+        # Convertir los datos a un formato más amigable para el frontend
         data = super().to_representation(instance)
-        if 'apoyo_economico' in data:
-            data['apoyo_economico'] = 'Si' if instance.apoyo_economico else 'No'
+        
+        # Mapear idOferta a oferta_id para compatibilidad con el frontend
+        if 'idOferta' in data:
+            data['oferta_id'] = data['idOferta']
+        
+        # Mapear Ofrece_apoyo a apoyo_economico para el frontend
+        if 'Ofrece_apoyo' in data:
+            data['apoyo_economico'] = data['Ofrece_apoyo']
+        
+        # Mapear nombreTutor a nombre_responsable
+        if 'nombreTutor' in data:
+            data['nombre_responsable'] = data['nombreTutor']
+        
+        # Mapear nacional a tipo_oferta
+        if 'nacional' in data:
+            if data['nacional'] == 'Si':
+                data['tipo_oferta'] = 'Nacional'
+            elif data['nacional'] == 'No':
+                data['tipo_oferta'] = 'Internacional'
+        
+        # Mapear apoyoEconomico a valor_apoyo_economico si Ofrece_apoyo es 'Si'
+        if 'apoyoEconomico' in data and 'Ofrece_apoyo' in data:
+            if data.get('Ofrece_apoyo') == 'Si' and data.get('apoyoEconomico'):
+                try:
+                    # Convertir Decimal a float para JSON
+                    from decimal import Decimal
+                    if isinstance(data['apoyoEconomico'], Decimal):
+                        data['valor_apoyo_economico'] = float(data['apoyoEconomico'])
+                    else:
+                        data['valor_apoyo_economico'] = float(data['apoyoEconomico'])
+                except (ValueError, TypeError):
+                    pass
+        
+        # Asegurar que empresa_id esté presente
+        if 'empresa' in data:
+            data['empresa_id'] = data['empresa']
+        
         return data
 

@@ -1,11 +1,10 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework import serializers
 from .models import Coformacion, Estudiantes, Empresas, Roles, Permisos, RolesPermisos, TiposDocumento, Facultades, Programas, MateriasNucleo, ObjetivosAprendizaje, Promociones, NivelesIngles, EstadosCartera, SectoresEconomicos, TamanosEmpresa, TiposContacto, ContactosEmpresa, OfertasEmpresas, EstadoProceso, ProcesoCoformacion, DocumentosProceso, TiposActividad, CalendarioActividades, PlantillasCorreo, HistorialComunicaciones
 from .serializers import OfertasEmpresasSerializer
 from .serializers import *
-from rest_framework import status
-import google.generativeai as genai
 import os
 
 class RolesViewSet(viewsets.ModelViewSet):
@@ -79,7 +78,7 @@ class TamanosEmpresaViewSet(viewsets.ModelViewSet):
 class EmpresasViewSet(viewsets.ModelViewSet):
     queryset = Empresas.objects.all()
     serializer_class = EmpresasSerializer
-    
+
     def retrieve(self, request, *args, **kwargs):
         try:
             return super().retrieve(request, *args, **kwargs)
@@ -107,152 +106,127 @@ class ContactosEmpresaViewSet(viewsets.ModelViewSet):
 class OfertasEmpresasViewSet(viewsets.ModelViewSet):
     queryset = OfertasEmpresas.objects.all()
     serializer_class = OfertasEmpresasSerializer
-    
-    def perform_create(self, serializer):
-        """
-        Sobrescribir perform_create para asegurar que tipo_oferta nunca se intente guardar
-        """
-        # El serializer ya debería haber manejado el mapeo, pero verificamos una vez más
-        validated_data = serializer.validated_data.copy()
-        
-        # Asegurar que tipo_oferta NO esté presente
-        validated_data.pop('tipo_oferta', None)
-        
-        # Guardar usando el método create del serializer
-        serializer.save()
-    
+
     def create(self, request, *args, **kwargs):
+        """
+        Crear una nueva oferta. El serializer maneja toda la lógica de mapeo y validación.
+        """
         try:
-            # Agregar valores por defecto para campos antiguos requeridos si no están presentes
-            data = request.data.copy()
-            
+            # request.data en DRF ya es un dict procesado, pero asegurémonos
+            # Convertir QueryDict a dict si es necesario
+            if hasattr(request.data, 'dict'):
+                # Es un QueryDict, convertir a dict
+                data = request.data.dict()
+            elif hasattr(request.data, 'copy'):
+                data = request.data.copy()
+            elif isinstance(request.data, dict):
+                data = dict(request.data)
+            else:
+                data = {}
+
+            # Asegurar que los valores de lista se conviertan a valores simples
+            # (QueryDict puede devolver listas para claves duplicadas)
+            for key, value in data.items():
+                if isinstance(value, list) and len(value) == 1:
+                    data[key] = value[0]
+                elif isinstance(value, list) and len(value) == 0:
+                    data[key] = None
+
             print(f"Datos recibidos del frontend: {data}")
-            
-            # Verificar qué campos existen en la base de datos
-            # Si las migraciones no se han ejecutado, solo usar campos básicos
-            from django.db import connection
-            with connection.cursor() as cursor:
-                cursor.execute("SHOW COLUMNS FROM ofertasempresas")
-                existing_columns = [row[0] for row in cursor.fetchall()]
-            
-            # Asegurar que empresa esté presente (puede venir como empresa_id o empresa)
-            if 'empresa' not in data or not data.get('empresa'):
-                # Intentar obtener desde empresa_id
-                if 'empresa_id' in data and data.get('empresa_id'):
-                    data['empresa'] = data['empresa_id']
-                else:
-                    error_message = 'El campo empresa es requerido'
-                    print(f"ERROR: {error_message}. Datos recibidos: {data}")
-                    return Response(
-                        {'error': error_message},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-            
-            # Si no se envía 'nacional', usar un valor por defecto
-            if 'nacional' not in data or not data['nacional']:
-                data['nacional'] = 'No'
-            
-            # Si no se envía 'nombreTutor', usar nombre_responsable o un valor por defecto
-            if 'nombreTutor' not in data or not data['nombreTutor']:
-                nombre_responsable = data.get('nombre_responsable', 'Sin especificar')
-                data['nombreTutor'] = nombre_responsable[:40] if nombre_responsable else 'Sin especificar'
-            # También mapear nombre_responsable a nombreTutor si viene del frontend
-            if 'nombre_responsable' in data and 'nombreTutor' not in data:
-                data['nombreTutor'] = data['nombre_responsable'][:40]
-            
-            # Si no se envía 'apoyoEconomico', usar 0
-            if 'apoyoEconomico' not in data or data['apoyoEconomico'] is None:
-                data['apoyoEconomico'] = 0.00
-            # Mapear apoyo_economico a apoyoEconomico si viene del frontend
-            if 'apoyo_economico' in data:
-                apoyo = data['apoyo_economico']
-                if isinstance(apoyo, str):
-                    data['apoyoEconomico'] = 0.00 if apoyo.lower() == 'no' else 0.00
-                elif isinstance(apoyo, bool):
-                    data['apoyoEconomico'] = 0.00
-                else:
-                    data['apoyoEconomico'] = float(apoyo) if apoyo else 0.00
-                # Remover apoyo_economico ya que usamos apoyoEconomico
-                del data['apoyo_economico']
-            
-            # Si no se envía 'modalidad', usar un valor por defecto
-            if 'modalidad' not in data or not data['modalidad']:
-                data['modalidad'] = 'Presencial'
-            
-            # Si no se envía 'nombreEmpresa', obtenerlo de la empresa
-            if 'nombreEmpresa' not in data or not data.get('nombreEmpresa'):
+            print(f"Tipo de datos: {type(data)}")
+            print(f"Claves en data: {list(data.keys()) if isinstance(data, dict) else 'No es dict'}")
+            print(f"Valor de 'empresa' en data: {data.get('empresa')}, tipo: {type(data.get('empresa'))}")
+            print(f"Valor de 'empresa_id' en data: {data.get('empresa_id')}, tipo: {type(data.get('empresa_id'))}")
+
+            # Validar que empresa esté presente - intentar múltiples formas
+            empresa_value = None
+
+            # Intentar obtener empresa de diferentes campos
+            if 'empresa' in data and data.get('empresa'):
+                empresa_value = data.get('empresa')
+            elif 'empresa_id' in data and data.get('empresa_id'):
+                empresa_value = data.get('empresa_id')
+                data['empresa'] = empresa_value
+            elif 'empresa' in data:
+                # Puede ser 0, None, o string vacío
+                empresa_value = data.get('empresa')
+
+            # Convertir a entero si es string
+            if empresa_value is not None:
                 try:
-                    empresa_id = data.get('empresa')
-                    if empresa_id:
-                        # Convertir a int si es necesario
-                        if not isinstance(empresa_id, int):
-                            empresa_id = int(empresa_id)
-                        empresa = Empresas.objects.get(pk=empresa_id)
-                        data['nombreEmpresa'] = empresa.nombre_comercial or empresa.razon_social or 'Sin especificar'
-                    else:
-                        data['nombreEmpresa'] = 'Sin especificar'
-                except (Empresas.DoesNotExist, ValueError, TypeError) as e:
-                    print(f"Error obteniendo nombre de empresa: {e}")
-                    data['nombreEmpresa'] = 'Sin especificar'
-            
-            # PRIMERO: Mapear tipo_oferta a nacional (que es el campo que existe en la BD)
-            # tipo_oferta: 'Nacional' -> nacional: 'Si'
-            # tipo_oferta: 'Internacional' -> nacional: 'No'
-            # Esto DEBE hacerse ANTES de cualquier otra operación
-            if 'tipo_oferta' in data:
-                tipo_oferta = data.get('tipo_oferta', 'Nacional')
-                if tipo_oferta == 'Nacional':
-                    data['nacional'] = 'Si'
-                elif tipo_oferta == 'Internacional':
-                    data['nacional'] = 'No'
-                else:
-                    data['nacional'] = 'No'  # Por defecto
-                # Remover tipo_oferta inmediatamente para evitar que se intente insertar
-                del data['tipo_oferta']
-                print(f"✓ tipo_oferta '{tipo_oferta}' mapeado a nacional '{data['nacional']}' y removido de data")
-            
-            # Asegurar que nacional tenga un valor si no se proporcionó tipo_oferta
-            if 'nacional' not in data or not data['nacional']:
-                data['nacional'] = 'No'
-            
-            # Remover otros campos que no existen en la base de datos
-            campos_para_remover = []
-            campos_nuevos = ['apoyo_economico', 'nombre_responsable', 'descripcion', 'fecha_inicio', 'fecha_fin']
-            for campo in campos_nuevos:
-                if campo not in existing_columns and campo in data:
-                    print(f"Advertencia: El campo '{campo}' no existe en la base de datos, se removerá de los datos")
-                    campos_para_remover.append(campo)
-            
-            for campo in campos_para_remover:
-                del data[campo]
-            
-            # Asegurar que tipo_oferta NO esté en los datos finales (verificación final)
-            if 'tipo_oferta' in data:
-                print(f"⚠ ADVERTENCIA CRÍTICA: tipo_oferta todavía está en data, removiéndolo...")
-                del data['tipo_oferta']
-            
-            # Verificación final: asegurar que tipo_oferta no esté presente
-            if 'tipo_oferta' in data:
-                raise ValueError("ERROR: tipo_oferta no debe estar en data antes de serializar. Debe mapearse a 'nacional'.")
-            
-            print(f"Datos finales antes de serializar (sin tipo_oferta): {list(data.keys())}")
-            
+                    if isinstance(empresa_value, str):
+                        empresa_value = int(empresa_value) if empresa_value.strip() else None
+                    elif isinstance(empresa_value, (int, float)):
+                        empresa_value = int(empresa_value)
+                except (ValueError, TypeError):
+                    empresa_value = None
+
+            if not empresa_value or empresa_value == 0:
+                print(f"ERROR: empresa no encontrado. Datos recibidos: {data}")
+                return Response(
+                    {
+                        'error': 'El campo empresa es requerido',
+                        'detalle': 'No se recibió el ID de la empresa. Asegúrate de estar autenticado como empresa.'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Asegurar que empresa esté en data como entero
+            empresa_id_final = int(empresa_value)
+            data['empresa'] = empresa_id_final
+            # También asegurar empresa_id por compatibilidad
+            data['empresa_id'] = empresa_id_final
+
+            # Verificar que la empresa exista antes de pasar al serializer
+            try:
+                from .models import Empresas
+                empresa_obj = Empresas.objects.get(pk=empresa_id_final)
+                print(f"✓ Empresa identificada y verificada: {empresa_id_final} ({empresa_obj.nombre_comercial or empresa_obj.razon_social})")
+            except Empresas.DoesNotExist:
+                return Response(
+                    {
+                        'error': f'La empresa con ID {empresa_id_final} no existe en la base de datos.',
+                        'detalle': 'Verifica que el ID de empresa sea correcto.'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            print(f"Datos finales antes del serializer: {data}")
+            print(f"Claves en data: {list(data.keys())}")
+            print(f"Valor de empresa: {data.get('empresa')}, tipo: {type(data.get('empresa'))}")
+
+            # El serializer manejará todo el mapeo y validación
             serializer = self.get_serializer(data=data)
+            print(f"Serializer creado, validando datos...")
             serializer.is_valid(raise_exception=True)
+            print(f"✓ Validación del serializer exitosa")
             self.perform_create(serializer)
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        except serializers.ValidationError as e:
+            print(f"Error de validación: {e}")
+            return Response(
+                {'error': f'Error de validación: {str(e.detail)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         except Exception as e:
             import traceback
             error_trace = traceback.format_exc()
             print(f"Error en OfertasEmpresasViewSet.create: {e}")
             print(error_trace)
-            # Retornar solo el mensaje de error sin el traceback completo para el cliente
+            print(f"Tipo de error: {type(e).__name__}")
             error_message = str(e)
             if hasattr(e, 'detail'):
                 error_message = str(e.detail)
+            elif hasattr(e, 'args') and e.args:
+                error_message = str(e.args[0])
+            # Incluir más detalles del error para debugging
+            error_response = {
+                'error': f'Error al crear la oferta: {error_message}',
+                'error_type': type(e).__name__
+            }
             return Response(
-                {'error': f'Error al crear la oferta: {error_message}'},
+                error_response,
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -295,8 +269,6 @@ class HistorialComunicacionesViewSet(viewsets.ModelViewSet):
 class CoformacionViewSet(viewsets.ModelViewSet):
     queryset = Coformacion.objects.all()
     serializer_class = CoformacionSerializer
-
-genai.configure(api_key=os.getenv("AIzaSyDlrQj_C8iSkOwdRli8aJxQGH7I898TuXM"))
 
 @api_view(['POST'])
 def login_universal(request):
@@ -414,6 +386,15 @@ def login_estudiante(request):
 
 @api_view(['POST'])
 def recomendar_ofertas(request):
+    # Importación lazy para evitar errores de grpc al iniciar el servidor
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=os.getenv("AIzaSyDlrQj_C8iSkOwdRli8aJxQGH7I898TuXM"))
+    except ImportError:
+        return Response({"error": "Google Generative AI no está disponible"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+    except Exception as e:
+        return Response({"error": f"Error al configurar Generative AI: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     estudiante = request.data.get("estudiante")
     ofertas = request.data.get("ofertas")
 

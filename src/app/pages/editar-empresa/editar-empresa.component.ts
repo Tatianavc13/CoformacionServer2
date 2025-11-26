@@ -119,6 +119,12 @@ export class EditarEmpresaComponent implements OnInit {
   // Estados del formulario
   showContactForm = false;
   isEditingContact = false;
+  
+  // Logo/Imagen de la empresa
+  logoEmpresa: File | null = null;
+  nombreLogoEmpresa: string = '';
+  logoPreview: string | null = null;
+  imagenBase64: string | null = null; // Para guardar la imagen en base64
 
   companyForm: CompanyForm = {
     nombre: 'Empresa de Ejemplo',
@@ -231,6 +237,12 @@ export class EditarEmpresaComponent implements OnInit {
       this.sectoresEconomicos = sectores || [];
       this.tamanosEmpresa = tamanos || [];
       this.tiposContacto = tiposContacto || [];
+      
+      // Cargar imagen base64 si existe
+      if (empresa.imagen_url_base64) {
+        this.imagenBase64 = empresa.imagen_url_base64;
+        this.logoPreview = empresa.imagen_url_base64;
+      }
       
       // Inicializar campos adicionales
       this.nacionalOInternacional = 'Nacional'; // Valor por defecto
@@ -354,7 +366,8 @@ export class EditarEmpresaComponent implements OnInit {
         trabaja_sabado: this.empresa.trabaja_sabado || false,
         observaciones: this.empresa.observaciones || '',
         estado: this.empresa.estado !== false,
-        cuota_sena: this.empresa.cuota_sena || null
+        cuota_sena: this.empresa.cuota_sena || null,
+        imagen_url_base64: this.imagenBase64 || this.empresa.imagen_url_base64 || null  // Guardar la imagen en base64
       };
 
       // Actualizar empresa
@@ -473,6 +486,54 @@ export class EditarEmpresaComponent implements OnInit {
         this.profileImage = e.target.result;
       };
       reader.readAsDataURL(file);
+    }
+  }
+
+  // Métodos para manejar el logo de la empresa
+  onLogoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      
+      // Validar que sea una imagen
+      if (!file.type.startsWith('image/')) {
+        alert('Por favor, seleccione un archivo de imagen válido.');
+        return;
+      }
+      
+      // Validar tamaño del archivo (máximo 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        alert('El tamaño del archivo no debe exceder 5MB. Por favor, seleccione una imagen más pequeña.');
+        return;
+      }
+      
+      this.logoEmpresa = file;
+      this.nombreLogoEmpresa = file.name;
+      
+      // Crear preview y convertir a base64
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        const base64String = e.target.result;
+        this.logoPreview = base64String; // Para el preview
+        this.imagenBase64 = base64String; // Guardamos el base64 completo con prefijo
+        console.log('Imagen convertida a base64. Tamaño:', base64String.length, 'caracteres');
+      };
+      reader.onerror = () => {
+        alert('Error al leer el archivo. Por favor, intente nuevamente.');
+        this.logoEmpresa = null;
+        this.nombreLogoEmpresa = '';
+        this.logoPreview = null;
+        this.imagenBase64 = null;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  triggerLogoInput(): void {
+    const logoInput = document.getElementById('logoInputEdit') as HTMLInputElement;
+    if (logoInput) {
+      logoInput.click();
     }
   }
 

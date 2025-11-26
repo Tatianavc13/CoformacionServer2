@@ -74,6 +74,7 @@ export class ResumenEmpresaComponent implements OnInit {
 
   empresa: Empresa | null = null;
   logoUrl: string = 'assets/logoEmpresa.png'; // Logo predeterminado
+  logoBase64: string | null = null; // Logo en base64 desde la base de datos
 
   students: Student[] = [];
   
@@ -118,9 +119,16 @@ export class ResumenEmpresaComponent implements OnInit {
 
       if (empresa) {
         this.empresa = empresa;
-        // Establecer logo de la empresa o usar el predeterminado
-        // this.logoUrl = empresa.logo_url || 'assets/logoEmpresa.png';  // Comentado temporalmente
-        this.logoUrl = 'assets/logoEmpresa.png';
+        
+        // Establecer logo de la empresa: usar imagen_url_base64 si existe, sino el predeterminado
+        if (empresa.imagen_url_base64 && empresa.imagen_url_base64.trim() !== '') {
+          this.logoBase64 = empresa.imagen_url_base64;
+          console.log('Logo cargado desde imagen_url_base64');
+        } else {
+          this.logoBase64 = null;
+          this.logoUrl = 'assets/logoEmpresa.png';
+          console.log('Usando logo predeterminado');
+        }
         
         this.populateCompanyInfo(empresa, sectores || [], tamanos || []);
         this.populateContactInfo(empresa, contactos?.filter(c => c.empresa_id === empresaId) || []);

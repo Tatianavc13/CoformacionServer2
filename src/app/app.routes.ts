@@ -31,7 +31,7 @@ export const routes: Routes = [
   },
   { 
     path: 'editar-empresa', 
-    canActivate: [EmpresaGuard],
+    canActivate: [AuthGuard], // Permitir acceso a empresas y coformación
     loadComponent: () => import('./pages/editar-empresa/editar-empresa.component').then(m => m.EditarEmpresaComponent) 
   },
   { 

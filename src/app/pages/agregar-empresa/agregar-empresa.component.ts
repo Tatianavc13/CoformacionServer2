@@ -45,6 +45,7 @@ export class AgregarEmpresaComponent implements OnInit {
   logoEmpresa: File | null = null;
   nombreLogoEmpresa: string = '';
   logoPreview: string | null = null;
+  imagenBase64: string | null = null; // Para guardar la imagen en base64
 
   constructor(
     private fb: FormBuilder, 
@@ -219,8 +220,8 @@ export class AgregarEmpresaComponent implements OnInit {
         trabaja_sabado: formValue.trabaja_sabado || false,
         observaciones: formValue.observaciones || '',
         estado: formValue.estado !== false,
-        cuota_sena: formValue.cuota_sena || null
-        // logo_url: this.logoPreview || formValue.logo_url || ''  // Comentado temporalmente
+        cuota_sena: formValue.cuota_sena || null,
+        imagen_url_base64: this.imagenBase64 || null  // Guardar la imagen en base64
       };
 
       console.log('Datos a enviar:', empresaData);
@@ -283,13 +284,39 @@ export class AgregarEmpresaComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
+      
+      // Validar que sea una imagen
+      if (!file.type.startsWith('image/')) {
+        alert('Por favor, seleccione un archivo de imagen válido.');
+        return;
+      }
+      
+      // Validar tamaño del archivo (máximo 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        alert('El tamaño del archivo no debe exceder 5MB. Por favor, seleccione una imagen más pequeña.');
+        return;
+      }
+      
       this.logoEmpresa = file;
       this.nombreLogoEmpresa = file.name;
       
-      // Crear preview del logo
+      // Crear preview y convertir a base64
       const reader = new FileReader();
       reader.onload = (e: any) => {
-        this.logoPreview = e.target.result;
+        const base64String = e.target.result;
+        this.logoPreview = base64String; // Para el preview
+        // Guardar solo el base64 sin el prefijo data:image/...
+        // El base64 completo incluye el prefijo data:image/png;base64,...
+        this.imagenBase64 = base64String; // Guardamos el base64 completo con prefijo
+        console.log('Imagen convertida a base64. Tamaño:', base64String.length, 'caracteres');
+      };
+      reader.onerror = () => {
+        alert('Error al leer el archivo. Por favor, intente nuevamente.');
+        this.logoEmpresa = null;
+        this.nombreLogoEmpresa = '';
+        this.logoPreview = null;
+        this.imagenBase64 = null;
       };
       reader.readAsDataURL(file);
     }

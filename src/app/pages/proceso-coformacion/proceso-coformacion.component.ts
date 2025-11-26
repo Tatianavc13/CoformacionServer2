@@ -44,6 +44,7 @@ export class ProcesoCoformacionComponent implements OnInit {
   // Para formularios adicionales
   contactoSeleccionado: ContactoEmpresa | null = null;
   ofertasFiltradas: OfertaEmpresa[] = [];
+  isLoadingOfertas: boolean = false;
 
   constructor(
     private router: Router,
@@ -140,25 +141,84 @@ export class ProcesoCoformacionComponent implements OnInit {
 
   // Event handlers
   onEmpresaChange() {
-    if (this.proceso.empresa) {
-      // Filtrar ofertas por empresa seleccionada
-      this.ofertasFiltradas = this.ofertas.filter(o => o.empresa === this.proceso.empresa);
+    if (this.proceso.empresa && this.proceso.empresa > 0) {
+      // Cargar ofertas de la empresa seleccionada
+      this.cargarOfertasEmpresa(this.proceso.empresa);
       
       // Obtener contacto principal de la empresa
       const contacto = this.contactosEmpresa.find(c => c.empresa_id === this.proceso.empresa);
       this.contactoSeleccionado = contacto || null;
       
-      // Limpiar oferta seleccionada si no pertenece a la nueva empresa
-      if (this.proceso.oferta) {
-        const ofertaExiste = this.ofertasFiltradas.find(o => o.oferta_id === this.proceso.oferta);
-        if (!ofertaExiste) {
-          this.proceso.oferta = 0;
-        }
-      }
+      // Limpiar oferta seleccionada al cambiar de empresa
+      this.proceso.oferta = 0;
     } else {
-      this.ofertasFiltradas = [...this.ofertas];
+      this.ofertasFiltradas = [];
       this.contactoSeleccionado = null;
+      this.proceso.oferta = 0;
     }
+  }
+
+  cargarOfertasEmpresa(empresaId: number) {
+    this.isLoadingOfertas = true;
+    // Filtrar ofertas por empresa desde el array local primero
+    this.ofertasFiltradas = this.ofertas.filter(o => {
+      // Verificar si la oferta pertenece a esta empresa
+      const ofertaEmpresaId = o.empresa || o.empresa_id;
+      return ofertaEmpresaId === empresaId;
+    });
+    
+    // Si ya tenemos ofertas en el array local, usarlas
+    if (this.ofertasFiltradas.length > 0) {
+      this.isLoadingOfertas = false;
+      return;
+    }
+
+    // Si no hay ofertas en el array local, intentar cargar desde el backend
+    this.ofertasEmpresasService.getAll().subscribe({
+      next: (ofertas) => {
+        this.ofertas = ofertas || [];
+        this.ofertasFiltradas = this.ofertas.filter(o => {
+          const ofertaEmpresaId = o.empresa || o.empresa_id;
+          return ofertaEmpresaId === empresaId;
+        });
+        this.isLoadingOfertas = false;
+      },
+      error: (error) => {
+        console.error('Error cargando ofertas:', error);
+        this.ofertasFiltradas = [];
+        this.isLoadingOfertas = false;
+      }
+    });
+  }
+
+  seleccionarOferta(ofertaId: number) {
+    if (ofertaId && ofertaId > 0) {
+      this.proceso.oferta = ofertaId;
+    }
+  }
+
+  getOfertaInfo(oferta: OfertaEmpresa): string {
+    let info = '';
+    if (oferta.descripcion) {
+      info += oferta.descripcion;
+    }
+    if (oferta.modalidad) {
+      info += info ? ` • ${oferta.modalidad}` : oferta.modalidad;
+    }
+    if (oferta.fecha_inicio && oferta.fecha_fin) {
+      info += info ? ` • ${oferta.fecha_inicio} - ${oferta.fecha_fin}` : `${oferta.fecha_inicio} - ${oferta.fecha_fin}`;
+    }
+    return info || 'Sin información adicional';
+  }
+
+  getOfertaId(oferta: OfertaEmpresa): number | undefined {
+    // Manejar diferentes nombres de campo para el ID
+    return oferta.oferta_id || (oferta as any).idOferta;
+  }
+
+  isOfertaSelected(oferta: OfertaEmpresa): boolean {
+    const ofertaId = this.getOfertaId(oferta);
+    return this.proceso.oferta === ofertaId;
   }
 
   onSubmit() {

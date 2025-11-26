@@ -82,6 +82,20 @@
         </select>
       </div>
 
+      <!-- Campo condicional para el valor del apoyo económico -->
+      <div class="form-group" *ngIf="ofertaForm.apoyo_economico === 'Si'">
+        <label>VALOR DEL APOYO ECONÓMICO *</label>
+        <input 
+          type="number" 
+          [(ngModel)]="ofertaForm.valor_apoyo_economico" 
+          name="valor_apoyo_economico" 
+          class="form-input"
+          placeholder="Ingrese el valor del apoyo económico"
+          min="0"
+          step="0.01"
+          required>
+      </div>
+
       <!-- Tercera fila -->
       <div class="form-group">
         <label>NOMBRE DEL RESPONSABLE *</label>

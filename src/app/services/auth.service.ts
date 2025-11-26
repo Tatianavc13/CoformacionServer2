@@ -91,6 +91,12 @@ export class AuthService {
               sessionStorage.setItem('estudiante_id', userData.estudiante_id.toString());
               console.log('AuthService - Saved estudiante_id to sessionStorage:', userData.estudiante_id);
             }
+            
+            // Si es una empresa, guardar también el empresa_id en sessionStorage
+            if (normalizedUserType === 'empresa' && userData?.empresa_id) {
+              sessionStorage.setItem('empresa_id', userData.empresa_id.toString());
+              console.log('AuthService - Saved empresa_id to sessionStorage:', userData.empresa_id);
+            }
 
             // Modificar la respuesta para que el componente la entienda
             response.success = true;

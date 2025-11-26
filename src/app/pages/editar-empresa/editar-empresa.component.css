@@ -58,6 +58,48 @@
   opacity: 1;
 }
 
+/* Logo Section */
+.logo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.profile-icon {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background-color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  margin-bottom: 15px;
+}
+
+.logo-upload-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 200px;
+}
+
+.logo-upload-section .file-button {
+  margin: 0;
+}
+
+.logo-filename {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  word-break: break-word;
+}
+
 /* Form Grid */
 .form-grid {
   display: grid;

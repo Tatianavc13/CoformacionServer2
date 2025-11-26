@@ -31,6 +31,7 @@ export class InformacionEmpresaComponent implements OnInit {
   showBlockModal = false;
   isBlocking = false;
   logoUrl: string = 'assets/logoEmpresa.png'; // Logo predeterminado
+  logoBase64: string | null = null; // Logo en base64 desde la base de datos
 
   constructor(
     private router: Router,
@@ -103,9 +104,17 @@ export class InformacionEmpresaComponent implements OnInit {
     this.empresasService.getById(this.empresaId).subscribe({
       next: (empresa) => {
         this.empresa = empresa;
-        // Establecer logo de la empresa o usar el predeterminado
-        // this.logoUrl = empresa.logo_url || 'assets/logoEmpresa.png';  // Comentado temporalmente
-        this.logoUrl = 'assets/logoEmpresa.png';
+        
+        // Establecer logo de la empresa: usar imagen_url_base64 si existe, sino el predeterminado
+        if (empresa.imagen_url_base64 && empresa.imagen_url_base64.trim() !== '') {
+          this.logoBase64 = empresa.imagen_url_base64;
+          console.log('Logo cargado desde imagen_url_base64 en informacion-empresa');
+        } else {
+          this.logoBase64 = null;
+          this.logoUrl = 'assets/logoEmpresa.png';
+          console.log('Usando logo predeterminado en informacion-empresa');
+        }
+        
         this.loadRelatedData();
       },
       error: (error) => {

@@ -85,15 +85,80 @@
         <!-- Selección de Oferta -->
         <div class="section-title">OFERTA DE COFORMACIÓN</div>
         <div class="offer-section">
-            <div class="form-row">
-                <div class="form-field">
-                    <label>OFERTA *</label>
-                    <select [(ngModel)]="proceso.oferta" name="oferta" required>
-                        <option value="0">Seleccione una oferta</option>
-                        <option *ngFor="let oferta of ofertasFiltradas" [value]="oferta.oferta_id">
-                            {{ oferta.descripcion }} ({{ oferta.fecha_inicio }} - {{ oferta.fecha_fin }})
-                        </option>
-                    </select>
+            <!-- Mensaje cuando no hay empresa seleccionada -->
+            <div *ngIf="!proceso.empresa || proceso.empresa === 0" class="info-message">
+                <p>Por favor, seleccione una empresa para ver sus ofertas disponibles.</p>
+            </div>
+
+            <!-- Loading de ofertas -->
+            <div *ngIf="isLoadingOfertas && proceso.empresa" class="loading-ofertas">
+                <p>Cargando ofertas de la empresa...</p>
+            </div>
+
+            <!-- Listado de ofertas -->
+            <div *ngIf="proceso.empresa && proceso.empresa > 0 && !isLoadingOfertas">
+                <div *ngIf="ofertasFiltradas.length === 0" class="info-message">
+                    <p>Esta empresa no tiene ofertas disponibles actualmente.</p>
+                </div>
+
+                <div *ngIf="ofertasFiltradas.length > 0" class="ofertas-list">
+                    <label class="ofertas-label">SELECCIONE UNA OFERTA *</label>
+                    <div class="ofertas-grid">
+                        <div 
+                            *ngFor="let oferta of ofertasFiltradas" 
+                            class="oferta-card"
+                            [class.selected]="isOfertaSelected(oferta)"
+                            (click)="seleccionarOferta(getOfertaId(oferta) || 0)">
+                            <div class="oferta-header">
+                                <input 
+                                    type="radio" 
+                                    [name]="'oferta_' + proceso.empresa" 
+                                    [value]="getOfertaId(oferta)"
+                                    [checked]="isOfertaSelected(oferta)"
+                                    (click)="seleccionarOferta(getOfertaId(oferta) || 0)"
+                                    class="oferta-radio">
+                                <h4 class="oferta-title">Oferta #{{ getOfertaId(oferta) }}</h4>
+                            </div>
+                            
+                            <div class="oferta-body">
+                                <div class="oferta-descripcion" *ngIf="oferta.descripcion">
+                                    <strong>Descripción:</strong>
+                                    <p>{{ oferta.descripcion }}</p>
+                                </div>
+                                
+                                <div class="oferta-details">
+                                    <div class="oferta-detail-item" *ngIf="oferta.modalidad">
+                                        <span class="detail-label">Modalidad:</span>
+                                        <span class="detail-value">{{ oferta.modalidad }}</span>
+                                    </div>
+                                    
+                                    <div class="oferta-detail-item" *ngIf="oferta.fecha_inicio && oferta.fecha_fin">
+                                        <span class="detail-label">Período:</span>
+                                        <span class="detail-value">{{ oferta.fecha_inicio }} - {{ oferta.fecha_fin }}</span>
+                                    </div>
+                                    
+                                    <div class="oferta-detail-item" *ngIf="oferta.tipo_oferta">
+                                        <span class="detail-label">Tipo:</span>
+                                        <span class="detail-value">{{ oferta.tipo_oferta }}</span>
+                                    </div>
+                                    
+                                    <div class="oferta-detail-item" *ngIf="oferta.apoyo_economico">
+                                        <span class="detail-label">Apoyo Económico:</span>
+                                        <span class="detail-value">{{ oferta.apoyo_economico }}</span>
+                                        <span *ngIf="oferta.valor_apoyo_economico && oferta.apoyo_economico === 'Si'" 
+                                              class="detail-value apoyo-valor">
+                                            - ${{ oferta.valor_apoyo_economico | number:'1.0-0' }}
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="oferta-detail-item" *ngIf="oferta.nombre_responsable">
+                                        <span class="detail-label">Responsable:</span>
+                                        <span class="detail-value">{{ oferta.nombre_responsable }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

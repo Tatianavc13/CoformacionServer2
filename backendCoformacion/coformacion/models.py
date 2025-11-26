@@ -252,6 +252,7 @@ class Empresas(models.Model):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
     nit = models.CharField(max_length=20, blank=True, null=True, db_column='nit_empresa')
+    imagen_url_base64 = models.TextField(blank=True, null=True, db_column='imagen_url_base64')
     # logo_url = models.CharField(max_length=255, blank=True, null=True, db_column='logo_url')  # Comentado temporalmente hasta ejecutar migración
 
     class Meta:
@@ -319,6 +320,7 @@ class OfertasEmpresas(models.Model):
     nombreEmpresa = models.CharField(max_length=255, blank=True, null=True)
     empresa = models.ForeignKey(Empresas, on_delete=models.CASCADE, db_column='empresa_id')
     programa_id = models.ForeignKey('Programas', on_delete=models.SET_NULL, null=True, blank=True, db_column='programa_id')
+    Ofrece_apoyo = models.CharField(max_length=100, blank=True, null=True, db_column='Ofrece_apoyo')
     
     # Campos nuevos agregados en migración 0003
     # Comentados temporalmente porque no existen en la BD actual
