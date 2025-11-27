@@ -84,13 +84,28 @@ export class ProcesoCoformacionComponent implements OnInit {
     this.isLoading = true;
     this.error = null;
 
-    // Cargar todos los datos necesarios
+    // Cargar todos los datos necesarios con mejor manejo de errores
     Promise.all([
-      this.estudiantesService.getAll().toPromise(),
-      this.empresasService.getAll().toPromise(),
-      this.ofertasEmpresasService.getAll().toPromise(),
-      this.estadoProcesoService.getAll().toPromise(),
-      this.contactosEmpresaService.getAll().toPromise()
+      this.estudiantesService.getAll().toPromise().catch(err => {
+        console.error('Error cargando estudiantes:', err);
+        return [];
+      }),
+      this.empresasService.getAll().toPromise().catch(err => {
+        console.error('Error cargando empresas:', err);
+        return [];
+      }),
+      this.ofertasEmpresasService.getAll().toPromise().catch(err => {
+        console.error('Error cargando ofertas:', err);
+        return [];
+      }),
+      this.estadoProcesoService.getAll().toPromise().catch(err => {
+        console.error('Error cargando estados de proceso:', err);
+        return [];
+      }),
+      this.contactosEmpresaService.getAll().toPromise().catch(err => {
+        console.error('Error cargando contactos de empresa:', err);
+        return [];
+      })
     ]).then(([estudiantes, empresas, ofertas, estados, contactos]) => {
       this.estudiantes = estudiantes || [];
       this.empresas = empresas || [];
@@ -107,7 +122,7 @@ export class ProcesoCoformacionComponent implements OnInit {
       }
     }).catch(error => {
       console.error('Error cargando datos:', error);
-      this.error = 'Error al cargar los datos. Verifica que el backend esté ejecutándose.';
+      this.error = 'Error al cargar los datos. Verifica que el backend esté ejecutándose. Revisa la consola para más detalles.';
       this.isLoading = false;
     });
   }
