@@ -36,6 +36,7 @@ export class PerfilEstudianteComponent implements OnInit {
   isLoading = true;
   error: string | null = null;
   estudianteId: number | null = null;
+  isCoformador: boolean = false;
 
   constructor(
     private router: Router,
@@ -54,6 +55,9 @@ export class PerfilEstudianteComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    // Verificar si el usuario es coformador
+    this.isCoformador = this.authService.isCoformacion();
+
     // Obtener ID del estudiante de los parámetros de la ruta
     this.route.params.subscribe(params => {
       if (params['id']) {
@@ -197,36 +201,41 @@ export class PerfilEstudianteComponent implements OnInit {
       );
     }
 
-    // Cargar proceso de coformación activo
-    this.procesoCoformacionService.getAll().subscribe({
-      next: (procesos) => {
-        const procesoActivo = procesos.find(p => p.estudiante === this.estudiante!.estudiante_id);
-        if (procesoActivo) {
-          this.procesoCoformacion = procesoActivo;
+    // Cargar proceso de coformación activo solo si es coformador
+    if (this.isCoformador) {
+      this.procesoCoformacionService.getAll().subscribe({
+        next: (procesos) => {
+          const procesoActivo = procesos.find(p => p.estudiante === this.estudiante!.estudiante_id);
+          if (procesoActivo) {
+            this.procesoCoformacion = procesoActivo;
 
-          // Cargar empresa del proceso
-          if (procesoActivo.empresa) {
-            this.empresasService.getById(procesoActivo.empresa).subscribe({
-              next: (empresa) => this.empresa = empresa,
-              error: (error) => console.error('Error cargando empresa:', error)
-            });
-          }
+            // Cargar empresa del proceso
+            if (procesoActivo.empresa) {
+              this.empresasService.getById(procesoActivo.empresa).subscribe({
+                next: (empresa) => this.empresa = empresa,
+                error: (error) => console.error('Error cargando empresa:', error)
+              });
+            }
 
-          // Cargar estado del proceso
-          if (procesoActivo.estado) {
-            this.estadoProcesoService.getById(procesoActivo.estado).subscribe({
-              next: (estado) => this.estadoProceso = estado,
-              error: (error) => console.error('Error cargando estado proceso:', error)
-            });
+            // Cargar estado del proceso
+            if (procesoActivo.estado) {
+              this.estadoProcesoService.getById(procesoActivo.estado).subscribe({
+                next: (estado) => this.estadoProceso = estado,
+                error: (error) => console.error('Error cargando estado proceso:', error)
+              });
+            }
           }
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error cargando procesos:', error);
+          this.isLoading = false;
         }
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error cargando procesos:', error);
-        this.isLoading = false;
-      }
-    });
+      });
+    } else {
+      // Si es estudiante, solo terminar la carga sin cargar procesos
+      this.isLoading = false;
+    }
   }
 
   // Métodos auxiliares para mostrar información

@@ -132,8 +132,8 @@
         </div>
     </section>
 
-    <!-- Coformation Process Section -->
-    <section class="info-section">
+    <!-- Coformation Process Section (solo visible para coformadores) -->
+    <section class="info-section" *ngIf="isCoformador">
         <h2>Proceso de Coformación</h2>
         <div class="info-grid" *ngIf="procesoCoformacion; else noProcess">
             <div class="info-row">
