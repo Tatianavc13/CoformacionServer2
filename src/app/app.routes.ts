@@ -9,6 +9,7 @@ import { PublicGuard } from './guards/public.guard';
 import { EmpresaGuard } from './guards/empresa.guard';
 import { EstudianteGuard } from './guards/estudiante.guard';
 import { CoformacionGuard } from './guards/coformacion.guard';
+import { EstudianteOrCoformacionGuard } from './guards/estudiante-or-coformacion.guard';
 
 export const routes: Routes = [
   // Rutas públicas (sin autenticación)
@@ -63,7 +64,7 @@ export const routes: Routes = [
   },
   { 
     path: 'editar-estudiante', 
-    canActivate: [EstudianteGuard],
+    canActivate: [EstudianteOrCoformacionGuard],
     loadComponent: () => import('./pages/editar-estudiante/editar-estudiante.component').then(m => m.EditarEstudianteComponent) 
   },
   { 
