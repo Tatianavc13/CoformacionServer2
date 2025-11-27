@@ -8,6 +8,7 @@ import { EmpresasService } from '../../services/empresas.service';
 import { OfertasempresasService } from '../../services/ofertasempresas.service';
 import { EstadoProcesoService } from '../../services/estado_proceso.service';
 import { ContactosEmpresaService } from '../../services/contactos_empresa.service';
+import { AuthService } from '../../services/auth.service';
 import { ProcesoCoformacion, Estudiante, Empresa, OfertaEmpresa, EstadoProceso, ContactoEmpresa } from '../../models/interfaces';
 
 @Component({
@@ -45,6 +46,8 @@ export class ProcesoCoformacionComponent implements OnInit {
   contactoSeleccionado: ContactoEmpresa | null = null;
   ofertasFiltradas: OfertaEmpresa[] = [];
   isLoadingOfertas: boolean = false;
+  estudianteIdFromParams: number | null = null;
+  userType: string | null = null;
 
   constructor(
     private router: Router,
@@ -54,15 +57,23 @@ export class ProcesoCoformacionComponent implements OnInit {
     private empresasService: EmpresasService,
     private ofertasEmpresasService: OfertasempresasService,
     private estadoProcesoService: EstadoProcesoService,
-    private contactosEmpresaService: ContactosEmpresaService
+    private contactosEmpresaService: ContactosEmpresaService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
-    // Verificar si estamos en modo edición
+    // Obtener el tipo de usuario
+    this.userType = this.authService.getUserType();
+
+    // Verificar si estamos en modo edición o si viene el estudiante_id
     this.route.queryParams.subscribe(params => {
       if (params['id']) {
         this.procesoId = +params['id'];
         this.isEditMode = true;
+      }
+      if (params['estudiante_id']) {
+        this.estudianteIdFromParams = +params['estudiante_id'];
+        this.proceso.estudiante = this.estudianteIdFromParams;
       }
     });
 
@@ -244,9 +255,19 @@ export class ProcesoCoformacionComponent implements OnInit {
     operation.subscribe({
       next: (response) => {
         this.isSaving = false;
-        this.router.navigate(['/editar-estudiante'], { 
-          queryParams: { mensaje: 'Proceso de coformación guardado exitosamente' }
-        });
+        
+        // Redirigir según el tipo de usuario
+        if (this.userType === 'coformacion') {
+          // Los coformadores van al perfil del estudiante
+          this.router.navigate(['/perfil-estudiante', this.proceso.estudiante], {
+            queryParams: { mensaje: 'Proceso de coformación guardado exitosamente' }
+          });
+        } else {
+          // Los estudiantes van a editar-estudiante
+          this.router.navigate(['/editar-estudiante'], { 
+            queryParams: { id: this.proceso.estudiante, mensaje: 'Proceso de coformación guardado exitosamente' }
+          });
+        }
       },
       error: (error) => {
         console.error('Error guardando proceso:', error);
@@ -267,7 +288,14 @@ export class ProcesoCoformacionComponent implements OnInit {
   }
 
   onCancel() {
-    this.router.navigate(['/editar-estudiante']);
+    // Redirigir según el tipo de usuario
+    if (this.userType === 'coformacion' && this.proceso.estudiante) {
+      this.router.navigate(['/perfil-estudiante', this.proceso.estudiante]);
+    } else {
+      this.router.navigate(['/editar-estudiante'], { 
+        queryParams: { id: this.proceso.estudiante }
+      });
+    }
   }
 
   guardar() {

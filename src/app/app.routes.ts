@@ -69,7 +69,7 @@ export const routes: Routes = [
   },
   { 
     path: 'proceso-coformacion', 
-    canActivate: [EstudianteGuard],
+    canActivate: [EstudianteOrCoformacionGuard],
     loadComponent: () => import('./pages/proceso-coformacion/proceso-coformacion.component').then(m => m.ProcesoCoformacionComponent) 
   },
 
