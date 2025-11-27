@@ -173,7 +173,12 @@ class Estudiantes(models.Model):
 
     estudiante_id = models.AutoField(primary_key=True)
     codigo_estudiante = models.CharField(max_length=20, unique=True)
-    nombre_completo = models.CharField(max_length=255)
+    nombres = models.CharField(max_length=300)
+    apellidos = models.CharField(max_length=300)
+    
+    @property
+    def nombre_completo(self):
+        return f"{self.nombres} {self.apellidos}"
     tipo_documento = models.CharField(max_length=3, choices=TIPO_DOCUMENTO_CHOICES)
     numero_documento = models.CharField(max_length=20, unique=True)
     fecha_nacimiento = models.DateField()
@@ -200,6 +205,21 @@ class Estudiantes(models.Model):
 
     class Meta:
         db_table = 'estudiantes'
+
+
+
+class ContactosDeEmergencia(models.Model):
+    contacto_id = models.AutoField(primary_key=True)
+    estudiante = models.ForeignKey(Estudiantes, on_delete=models.CASCADE, db_column='estudiante_id')
+    nombres = models.CharField(max_length=300)
+    apellidos = models.CharField(max_length=300)
+    parentesco = models.CharField(max_length=200)
+    celular = models.CharField(max_length=20)
+    telefono = models.CharField(max_length=20, blank=True, null=True)
+    correo = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        db_table = 'contactos_de_emergencia'
 
 
 class SectoresEconomicos(models.Model):

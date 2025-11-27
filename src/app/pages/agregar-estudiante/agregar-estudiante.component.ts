@@ -19,14 +19,14 @@ import { Estudiante, Programa, TipoDocumento, NivelIngles, Promocion, EstadoCart
 })
 export class AgregarEstudianteComponent implements OnInit {
   estudianteForm: FormGroup;
-  
+
   // Datos para listas desplegables
   programas: Programa[] = [];
   tiposDocumento: TipoDocumento[] = [];
   nivelesIngles: NivelIngles[] = [];
   promociones: Promocion[] = [];
   estadosCartera: EstadoCartera[] = [];
-  
+
   // Opciones para campos de selección
   generoOptions = [
     { value: 'M', label: 'Masculino' },
@@ -39,7 +39,7 @@ export class AgregarEstudianteComponent implements OnInit {
     { value: 'Mixta', label: 'Mixta' }
   ];
   estadoOptions = ['Activo', 'Inactivo', 'Graduado', 'Retirado'];
-  
+
   // Estados de carga
   isLoading = false;
   error: string | null = null;
@@ -57,12 +57,13 @@ export class AgregarEstudianteComponent implements OnInit {
     this.estudianteForm = this.fb.group({
       // Información personal básica
       codigo_estudiante: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
-      nombre_completo: ['', [Validators.required, Validators.minLength(3)]],
+      nombres: ['', [Validators.required, Validators.minLength(3)]],
+      apellidos: ['', [Validators.required, Validators.minLength(3)]],
       tipo_documento: ['CC', Validators.required],
       numero_documento: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
       fecha_nacimiento: ['', Validators.required],
       genero: ['', Validators.required],
-      
+
       // Información de contacto
       telefono: ['', Validators.pattern(/^\d{7,10}$/)],
       celular: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
@@ -70,7 +71,7 @@ export class AgregarEstudianteComponent implements OnInit {
       email_personal: ['', Validators.email],
       direccion: [''],
       ciudad: [''],
-      
+
       // Información académica
       programa_id: [null, Validators.required],
       semestre: [1, [Validators.required, Validators.min(1), Validators.max(20)]],
@@ -78,14 +79,25 @@ export class AgregarEstudianteComponent implements OnInit {
       promedio_acumulado: [null, [Validators.min(0), Validators.max(5)]],
       estado: ['Activo', Validators.required],
       fecha_ingreso: ['', Validators.required],
-      
+
       // Información adicional
       nivel_ingles_id: [null],
       promocion_id: [null],
       estado_cartera_id: [null],
-      
+      empresa_id: [null],
+
       // Foto (opcional)
-      foto_url: ['']
+      foto_url: [''],
+
+      // Contacto de Emergencia
+      contacto_emergencia: this.fb.group({
+        nombres: ['', Validators.required],
+        apellidos: ['', Validators.required],
+        parentesco: ['', Validators.required],
+        celular: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
+        telefono: ['', Validators.pattern(/^\d{7,10}$/)],
+        correo: ['', Validators.email]
+      })
     });
   }
 
@@ -130,21 +142,95 @@ export class AgregarEstudianteComponent implements OnInit {
       this.isLoading = true;
       this.error = null;
 
+      const formValue = this.estudianteForm.value;
+      
       const estudianteData = {
-        ...this.estudianteForm.value,
-        // Asegurar que los campos numéricos sean números
-        semestre: parseInt(this.estudianteForm.value.semestre),
-        promedio_acumulado: this.estudianteForm.value.promedio_acumulado ? parseFloat(this.estudianteForm.value.promedio_acumulado) : null
+        // Campos obligatorios
+        codigo_estudiante: formValue.codigo_estudiante.trim(),
+        nombres: formValue.nombres.trim(),
+        apellidos: formValue.apellidos.trim(),
+        tipo_documento: formValue.tipo_documento,
+        numero_documento: formValue.numero_documento.trim(),
+        fecha_nacimiento: formValue.fecha_nacimiento,
+        genero: formValue.genero,
+        celular: formValue.celular.trim(),
+        email_institucional: formValue.email_institucional.trim(),
+        programa_id: formValue.programa_id ? parseInt(formValue.programa_id) : null,
+        semestre: parseInt(formValue.semestre),
+        jornada: formValue.jornada,
+        estado: formValue.estado,
+        fecha_ingreso: formValue.fecha_ingreso,
+        
+        // Campos opcionales - convertir strings vacíos a null
+        telefono: formValue.telefono && formValue.telefono.trim() ? formValue.telefono.trim() : null,
+        email_personal: formValue.email_personal && formValue.email_personal.trim() ? formValue.email_personal.trim() : null,
+        direccion: formValue.direccion && formValue.direccion.trim() ? formValue.direccion.trim() : null,
+        ciudad: formValue.ciudad && formValue.ciudad.trim() ? formValue.ciudad.trim() : null,
+        foto_url: formValue.foto_url && formValue.foto_url.trim() ? formValue.foto_url.trim() : null,
+        promedio_acumulado: formValue.promedio_acumulado ? parseFloat(formValue.promedio_acumulado) : null,
+        
+        // IDs opcionales
+        nivel_ingles_id: formValue.nivel_ingles_id ? parseInt(formValue.nivel_ingles_id) : null,
+        promocion_id: formValue.promocion_id ? parseInt(formValue.promocion_id) : null,
+        estado_cartera_id: formValue.estado_cartera_id ? parseInt(formValue.estado_cartera_id) : null,
+        empresa_id: formValue.empresa_id ? parseInt(formValue.empresa_id) : null,
+        
+        // Contacto de emergencia (si existe)
+        contacto_emergencia: formValue.contacto_emergencia ? {
+          nombres: formValue.contacto_emergencia.nombres.trim(),
+          apellidos: formValue.contacto_emergencia.apellidos.trim(),
+          parentesco: formValue.contacto_emergencia.parentesco.trim(),
+          celular: formValue.contacto_emergencia.celular.trim(),
+          telefono: formValue.contacto_emergencia.telefono && formValue.contacto_emergencia.telefono.trim() 
+            ? formValue.contacto_emergencia.telefono.trim() 
+            : null,
+          correo: formValue.contacto_emergencia.correo && formValue.contacto_emergencia.correo.trim() 
+            ? formValue.contacto_emergencia.correo.trim() 
+            : null
+        } : null
       };
 
-      await this.estudiantesService.create(estudianteData).toPromise();
+      console.log('Enviando datos al servidor:', estudianteData);
       
+      await this.estudiantesService.create(estudianteData).toPromise();
+
       alert('Estudiante agregado exitosamente');
       this.router.navigate(['/consult-estudent']);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error guardando estudiante:', error);
-      this.error = 'Error al guardar el estudiante. Por favor, intente nuevamente.';
+      
+      // Capturar detalles de la respuesta del servidor
+      let errorMessage = 'Error al guardar el estudiante. Por favor, intente nuevamente.';
+      
+      if (error.error) {
+        console.error('Detalles del error del servidor:', error.error);
+        
+        // Si es un objeto con mensajes de validación
+        if (typeof error.error === 'object') {
+          const errorDetails = error.error;
+          let details = '';
+          
+          // Recorrer todos los campos con error
+          for (const field in errorDetails) {
+            if (errorDetails.hasOwnProperty(field)) {
+              const fieldError = errorDetails[field];
+              const errorMsg = Array.isArray(fieldError) ? fieldError[0] : fieldError;
+              console.error(`Campo "${field}":`, errorMsg);
+              details += `${field}: ${errorMsg}\n`;
+            }
+          }
+          
+          if (details) {
+            errorMessage = `Errores de validación:\n${details}`;
+            console.error('Errores de validación completos:', details);
+          }
+        } else if (typeof error.error === 'string') {
+          errorMessage = error.error;
+        }
+      }
+      
+      this.error = errorMessage;
     } finally {
       this.isLoading = false;
     }

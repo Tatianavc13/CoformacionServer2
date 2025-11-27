@@ -302,10 +302,22 @@ def login_universal(request):
             redirect_to = '/coformacion'
             tipo_detectado = 'coformacion'
         elif tipo_usuario == 'estudiante':
-            usuario = Estudiantes.objects.get(
-                nombre_completo__icontains=nombre_completo,
+            from django.db.models import Q, Value, CharField
+            from django.db.models.functions import Concat
+            
+            usuario = Estudiantes.objects.annotate(
+                full_name=Concat('nombres', Value(' '), 'apellidos', output_field=CharField()),
+                reverse_name=Concat('apellidos', Value(' '), 'nombres', output_field=CharField())
+            ).filter(
+                (Q(full_name__icontains=nombre_completo) | 
+                 Q(reverse_name__icontains=nombre_completo) |
+                 Q(nombres__icontains=nombre_completo) |
+                 Q(apellidos__icontains=nombre_completo)),
                 numero_documento=numero_documento
-            )
+            ).first()
+            
+            if not usuario:
+                raise Estudiantes.DoesNotExist
             serializer = EstudiantesSerializer(usuario)
             redirect_to = '/perfil-estudiante'
             tipo_detectado = 'estudiante'
@@ -331,10 +343,25 @@ def login_universal(request):
                 tipo_detectado = 'coformacion'
             except Coformacion.DoesNotExist:
                 try:
-                    usuario = Estudiantes.objects.get(
-                        nombre_completo__icontains=nombre_completo,
+                    from django.db.models import Q, Value, CharField
+                    from django.db.models.functions import Concat
+                    
+                    # Buscar estudiante por nombres y apellidos combinados
+                    # Intentamos varias combinaciones para ser flexibles
+                    usuario = Estudiantes.objects.annotate(
+                        full_name=Concat('nombres', Value(' '), 'apellidos', output_field=CharField()),
+                        reverse_name=Concat('apellidos', Value(' '), 'nombres', output_field=CharField())
+                    ).filter(
+                        (Q(full_name__icontains=nombre_completo) | 
+                         Q(reverse_name__icontains=nombre_completo) |
+                         Q(nombres__icontains=nombre_completo) |
+                         Q(apellidos__icontains=nombre_completo)),
                         numero_documento=numero_documento
-                    )
+                    ).first()
+                    
+                    if not usuario:
+                        raise Estudiantes.DoesNotExist
+                        
                     serializer = EstudiantesSerializer(usuario)
                     redirect_to = '/perfil-estudiante'
                     tipo_detectado = 'estudiante'

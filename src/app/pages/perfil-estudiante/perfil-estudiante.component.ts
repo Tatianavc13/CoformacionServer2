@@ -11,6 +11,7 @@ import { EstadosCarteraService } from '../../services/estados_cartera.service';
 import { ProcesoCoformacionService } from '../../services/proceso_coformacion.service';
 import { EmpresasService } from '../../services/empresas.service';
 import { EstadoProcesoService } from '../../services/estado_proceso.service';
+import { AuthService } from '../../services/auth.service';
 import { Estudiante, Programa, Facultad, Promocion, TipoDocumento, NivelIngles, EstadoCartera, ProcesoCoformacion, Empresa, EstadoProceso } from '../../models/interfaces';
 
 @Component({
@@ -31,7 +32,7 @@ export class PerfilEstudianteComponent implements OnInit {
   procesoCoformacion: ProcesoCoformacion | null = null;
   empresa: Empresa | null = null;
   estadoProceso: EstadoProceso | null = null;
-  
+
   isLoading = true;
   error: string | null = null;
   estudianteId: number | null = null;
@@ -48,8 +49,9 @@ export class PerfilEstudianteComponent implements OnInit {
     private estadosCarteraService: EstadosCarteraService,
     private procesoCoformacionService: ProcesoCoformacionService,
     private empresasService: EmpresasService,
-    private estadoProcesoService: EstadoProcesoService
-  ) {}
+    private estadoProcesoService: EstadoProcesoService,
+    private authService: AuthService
+  ) { }
 
   ngOnInit(): void {
     // Obtener ID del estudiante de los parámetros de la ruta
@@ -64,15 +66,46 @@ export class PerfilEstudianteComponent implements OnInit {
             this.estudianteId = +queryParams['id'];
             this.loadStudentProfile();
           } else {
-            // Si no hay ID, podríamos mostrar el primer estudiante o redirigir
-            this.loadFirstStudent();
+            // Intentar obtener el ID de la sesión actual
+            const sessionStudentId = this.getSessionStudentId();
+            if (sessionStudentId) {
+              this.estudianteId = sessionStudentId;
+              this.loadStudentProfile();
+            } else {
+              // Si no hay ID, podríamos mostrar el primer estudiante o redirigir
+              this.loadFirstStudent();
+            }
           }
         });
       }
     });
   }
 
+  private getSessionStudentId(): number | null {
+    // Intentar obtener del AuthService
+    const currentUser = this.authService.getCurrentUser();
+    if (currentUser && currentUser.estudiante_id) {
+      return +currentUser.estudiante_id;
+    }
+
+    // Intentar obtener del sessionStorage (fallback)
+    const storedId = sessionStorage.getItem('estudiante_id');
+    if (storedId) {
+      return +storedId;
+    }
+
+    return null;
+  }
+
   private loadFirstStudent(): void {
+    // Solo cargar el primer estudiante si no estamos autenticados como estudiante
+    // Si estamos autenticados como estudiante pero no encontramos el ID, es un error
+    if (this.authService.isEstudiante()) {
+      this.error = 'No se pudo identificar al estudiante. Por favor inicie sesión nuevamente.';
+      this.isLoading = false;
+      return;
+    }
+
     this.estudiantesService.getAll().subscribe({
       next: (estudiantes) => {
         if (estudiantes && estudiantes.length > 0) {
@@ -170,7 +203,7 @@ export class PerfilEstudianteComponent implements OnInit {
         const procesoActivo = procesos.find(p => p.estudiante === this.estudiante!.estudiante_id);
         if (procesoActivo) {
           this.procesoCoformacion = procesoActivo;
-          
+
           // Cargar empresa del proceso
           if (procesoActivo.empresa) {
             this.empresasService.getById(procesoActivo.empresa).subscribe({
@@ -204,14 +237,14 @@ export class PerfilEstudianteComponent implements OnInit {
   getTipoDocumentoNombre(): string {
     // Ahora tipo_documento es un ENUM string, no necesita consulta
     if (!this.estudiante?.tipo_documento) return 'N/A';
-    
+
     const tiposMap: { [key: string]: string } = {
       'CC': 'Cédula de Ciudadanía',
       'CE': 'Cédula de Extranjería',
       'PAS': 'Pasaporte',
       'TI': 'Tarjeta de Identidad'
     };
-    
+
     return tiposMap[this.estudiante.tipo_documento] || this.estudiante.tipo_documento;
   }
 
@@ -253,20 +286,20 @@ export class PerfilEstudianteComponent implements OnInit {
 
   // Navegación
   navigateToHistorialCoformacion() {
-    this.router.navigate(['/historial-coformacion'], { 
-      queryParams: { estudiante_id: this.estudianteId } 
+    this.router.navigate(['/historial-coformacion'], {
+      queryParams: { estudiante_id: this.estudianteId }
     });
   }
 
   navigateToEditarEstudiante() {
-    this.router.navigate(['/editar-estudiante'], { 
+    this.router.navigate(['/editar-estudiante'], {
       queryParams: { id: this.estudianteId }
     });
   }
 
   navigateToCreateProcess() {
-    this.router.navigate(['/proceso-coformacion'], { 
-      queryParams: { estudiante_id: this.estudianteId } 
+    this.router.navigate(['/proceso-coformacion'], {
+      queryParams: { estudiante_id: this.estudianteId }
     });
   }
 

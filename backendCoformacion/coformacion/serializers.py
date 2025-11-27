@@ -65,10 +65,28 @@ class EstadosCarteraSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ContactosDeEmergenciaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactosDeEmergencia
+        fields = '__all__'
+        extra_kwargs = {'estudiante': {'required': False}}
+
 class EstudiantesSerializer(serializers.ModelSerializer):
+    nombre_completo = serializers.ReadOnlyField()
+    contacto_emergencia = ContactosDeEmergenciaSerializer(write_only=True, required=False)
+    
     class Meta:
         model = Estudiantes
         fields = '__all__'
+
+    def create(self, validated_data):
+        contacto_data = validated_data.pop('contacto_emergencia', None)
+        estudiante = Estudiantes.objects.create(**validated_data)
+        
+        if contacto_data:
+            ContactosDeEmergencia.objects.create(estudiante=estudiante, **contacto_data)
+            
+        return estudiante
 
 
 class SectoresEconomicosSerializer(serializers.ModelSerializer):
