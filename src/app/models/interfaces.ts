@@ -66,6 +66,16 @@ export interface Estudiante {
   nivel_ingles_id?: number | null;
   estado_cartera_id?: number | null;
   promocion_id?: number | null;
+  contacto_emergencia?: {
+    contacto_id: number;
+    estudiante: number;
+    nombres: string;
+    apellidos: string;
+    parentesco: string;
+    celular: string;
+    telefono?: string | null;
+    correo?: string | null;
+  };
 }
 
 export interface SectorEconomico {

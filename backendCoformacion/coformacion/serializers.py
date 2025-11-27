@@ -73,19 +73,24 @@ class ContactosDeEmergenciaSerializer(serializers.ModelSerializer):
 
 class EstudiantesSerializer(serializers.ModelSerializer):
     nombre_completo = serializers.ReadOnlyField()
-    contacto_emergencia = ContactosDeEmergenciaSerializer(write_only=True, required=False)
+    contacto_emergencia = serializers.SerializerMethodField(read_only=True)
+    contacto_emergencia_input = ContactosDeEmergenciaSerializer(write_only=True, required=False)
     
     class Meta:
         model = Estudiantes
         fields = '__all__'
 
+    def get_contacto_emergencia(self, obj):
+        contacto = ContactosDeEmergencia.objects.filter(estudiante=obj).first()
+        if contacto:
+            return ContactosDeEmergenciaSerializer(contacto).data
+        return None
+
     def create(self, validated_data):
-        contacto_data = validated_data.pop('contacto_emergencia', None)
+        contacto_data = validated_data.pop('contacto_emergencia_input', None)
         estudiante = Estudiantes.objects.create(**validated_data)
-        
         if contacto_data:
             ContactosDeEmergencia.objects.create(estudiante=estudiante, **contacto_data)
-            
         return estudiante
 
 

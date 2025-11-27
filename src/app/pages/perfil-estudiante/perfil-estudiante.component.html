@@ -95,6 +95,43 @@
         </div>
     </section>
 
+    <!-- Emergency Contact Section (debajo de Información Académica) -->
+    <section class="info-section" *ngIf="estudiante.contacto_emergencia">
+        <h2>Contacto de Emergencia</h2>
+        <div class="info-grid">
+            <div class="info-row">
+                <div class="info-field">
+                    <label>Nombres</label>
+                    <div class="info-value">{{ estudiante.contacto_emergencia.nombres }}</div>
+                </div>
+                <div class="info-field">
+                    <label>Apellidos</label>
+                    <div class="info-value">{{ estudiante.contacto_emergencia.apellidos }}</div>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-field">
+                    <label>Parentesco</label>
+                    <div class="info-value">{{ estudiante.contacto_emergencia.parentesco }}</div>
+                </div>
+                <div class="info-field">
+                    <label>Celular</label>
+                    <div class="info-value">{{ estudiante.contacto_emergencia.celular }}</div>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-field">
+                    <label>Teléfono</label>
+                    <div class="info-value">{{ estudiante.contacto_emergencia.telefono || 'No registrado' }}</div>
+                </div>
+                <div class="info-field">
+                    <label>Correo</label>
+                    <div class="info-value">{{ estudiante.contacto_emergencia.correo || 'No registrado' }}</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Coformation Process Section -->
     <section class="info-section">
         <h2>Proceso de Coformación</h2>
