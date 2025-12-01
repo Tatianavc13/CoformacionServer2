@@ -240,6 +240,24 @@ body {
     transform: translateY(-2px); /* Pequeño efecto al pasar el ratón */
 }
 
+.edit-process-btn {
+    background-color: #2196F3; /* Azul para el botón de editar */
+    color: white;
+    padding: 12px 25px;
+    border-radius: 25px;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 8px rgba(33, 150, 243, 0.2);
+}
+
+.edit-process-btn:hover {
+    background-color: #1976D2;
+    transform: translateY(-2px);
+}
+
 /* Actions Section */
 .actions-section {
     padding: 1.5rem;
@@ -363,7 +381,7 @@ body {
         min-height: 2.5rem;
     }
 
-    .primary-btn, .refresh-btn, .create-process-btn {
+    .primary-btn, .refresh-btn, .create-process-btn, .edit-process-btn {
         padding: 10px 20px;
         font-size: 0.9rem;
     }

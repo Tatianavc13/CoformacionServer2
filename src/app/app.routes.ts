@@ -59,7 +59,7 @@ export const routes: Routes = [
   },
   { 
     path: 'historial-coformacion', 
-    canActivate: [EstudianteGuard],
+    canActivate: [EstudianteOrCoformacionGuard],
     loadComponent: () => import('./pages/historial-coformacion/historial-coformacion.component').then(m => m.HistorialCoformacionComponent) 
   },
   { 

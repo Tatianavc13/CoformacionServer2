@@ -312,6 +312,17 @@ export class PerfilEstudianteComponent implements OnInit {
     });
   }
 
+  navigateToEditProcess() {
+    if (this.procesoCoformacion && this.procesoCoformacion.proceso_id) {
+      this.router.navigate(['/proceso-coformacion'], {
+        queryParams: { 
+          id: this.procesoCoformacion.proceso_id,
+          estudiante_id: this.estudianteId 
+        }
+      });
+    }
+  }
+
   refreshData() {
     this.loadStudentProfile();
   }

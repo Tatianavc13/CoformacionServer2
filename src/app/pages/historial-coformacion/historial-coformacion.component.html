@@ -1,114 +1,76 @@
-<!-- Black Menu Bar -->
-<nav class="black-menu">
-    <ul>
-        <li><a href="/perfil-estudiante" (click)="navigateToPerfilEstudiante()" class="active">Mi Información</a></li>
-    </ul>
-</nav>
+<!-- Loading indicator -->
+<div *ngIf="isLoading" class="loading-container">
+    <p>Cargando historial de procesos de coformación...</p>
+</div>
 
-<!-- Main Content -->
-<div class="history-container">
-    <h1>Historial de Coformación</h1>
+<!-- Error message -->
+<div *ngIf="error" class="error-container">
+    <p>{{ error }}</p>
+    <button (click)="refreshData()">Reintentar</button>
+</div>
 
-    <section class="company-section">
-        <div class="company-header">
-            <h2>NOMBRE EMPRESA</h2>
-            <div class="company-logo">
-                <img [src]="companyHistory.logo" alt="Logo empresa">
-            </div>
+<div class="history-container" *ngIf="!isLoading && !error">
+    <div class="header-section">
+        <h1>Historial de Procesos de Coformación</h1>
+        <div class="button-group">
+            <button class="back-button" *ngIf="vieneDelFormulario" (click)="volverAlFormulario()">
+                Volver al Formulario
+            </button>
+            <button class="back-button" *ngIf="!vieneDelFormulario" (click)="volverAlPerfil()">
+                Volver al Perfil
+            </button>
         </div>
+    </div>
 
-        <div class="company-info-grid">
-            <div class="info-row">
-                <div class="info-field">
-                    <label>Razón Social</label>
-                    <div class="info-value">{{ companyHistory.razonSocial }}</div>
-                </div>
-                <div class="info-field">
-                    <label>Nit</label>
-                    <div class="info-value">{{ companyHistory.nit }}</div>
-                </div>
-                <div class="info-field">
-                    <label>Rut</label>
-                    <div class="info-value">{{ companyHistory.rut }}</div>
-                </div>
-                <div class="info-field">
-                    <label>Dígito Verificación</label>
-                    <div class="info-value">{{ companyHistory.digitoVerificacion }}</div>
-                </div>
-            </div>
-        </div>
+    <!-- Empty state -->
+    <div *ngIf="procesos.length === 0" class="empty-state">
+        <p>No hay procesos de coformación registrados.</p>
+    </div>
 
-        <div class="company-description">
-            <label>Información de la empresa</label>
-            <p>{{ companyHistory.informacionEmpresa }}</p>
-            <a href="javascript:void(0)" (click)="verMasInformacion()" class="more-info">Mas información sobre la empresa</a>
-        </div>
+    <!-- Processes List -->
+    <div *ngIf="procesos.length > 0" class="procesos-list">
+        <div class="procesos-grid">
+            <div *ngFor="let proceso of procesos" class="proceso-card">
+                <div class="proceso-header">
+                    <h3>Proceso #{{ proceso.proceso_id }}</h3>
+                    <span class="estado-badge" [class.estado-pendiente]="proceso.estado_nombre === 'Pendiente'"
+                          [class.estado-en-curso]="proceso.estado_nombre === 'En Curso'"
+                          [class.estado-finalizado]="proceso.estado_nombre === 'Finalizado'">
+                        {{ proceso.estado_nombre }}
+                    </span>
+                </div>
 
-        <div class="contract-info-grid">
-            <div class="info-row">
-                <div class="info-field">
-                    <label>Tipo de contrato:</label>
-                    <div class="info-value">{{ companyHistory.tipoContrato }}</div>
+                <div class="proceso-body">
+                    <div class="info-item">
+                        <span class="label">Estudiante:</span>
+                        <span class="value">{{ proceso.estudiante_nombre }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Empresa:</span>
+                        <span class="value">{{ proceso.empresa_nombre }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Fecha Inicio:</span>
+                        <span class="value">{{ proceso.fecha_inicio | date:'dd/MM/yyyy' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Fecha Fin:</span>
+                        <span class="value">
+                            {{ proceso.fecha_fin ? (proceso.fecha_fin | date:'dd/MM/yyyy') : 'En curso' }}
+                        </span>
+                    </div>
+                    <div class="info-item" *ngIf="proceso.observaciones">
+                        <span class="label">Observaciones:</span>
+                        <span class="value">{{ proceso.observaciones }}</span>
+                    </div>
                 </div>
-                <div class="info-field">
-                    <label>Sostenimiento:</label>
-                    <div class="info-value">{{ companyHistory.sostenimiento }}</div>
-                </div>
-            </div>
-            <div class="info-row">
-                <div class="info-field">
-                    <label>Periodicidad de pago:</label>
-                    <div class="info-value">{{ companyHistory.periodicidadPago }}</div>
-                </div>
-                <div class="info-field">
-                    <label>Forma de pago:</label>
-                    <div class="info-value">{{ companyHistory.formaPago }}</div>
-                </div>
-            </div>
-            <div class="info-row">
-                <div class="info-field">
-                    <label>Días de trabajo:</label>
-                    <div class="info-value">{{ companyHistory.diasTrabajo }}</div>
-                </div>
-                <div class="info-field">
-                    <label>Horario:</label>
-                    <div class="info-value">{{ companyHistory.horario }}</div>
+
+                <div class="proceso-actions">
+                    <button class="edit-btn" (click)="editarProceso(proceso.proceso_id)">
+                        Editar Proceso
+                    </button>
                 </div>
             </div>
         </div>
-
-        <div class="dates-section">
-            <div class="info-row">
-                <div class="info-field">
-                    <label>Fecha Inicio:</label>
-                    <div class="info-value">{{ companyHistory.fechaInicio }}</div>
-                </div>
-                <div class="info-field">
-                    <label>Fecha Fin:</label>
-                    <div class="info-value">{{ companyHistory.fechaFin }}</div>
-                </div>
-                <div class="info-field">
-                    <label>Periodo:</label>
-                    <div class="info-value">{{ companyHistory.periodo }}</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="observations-section">
-            <div class="observation-field">
-                <h3>RAZON DE DESVINCULACION DE LA EMPRESA</h3>
-                <div class="observation-box">{{ companyHistory.razonDesvinculacion }}</div>
-            </div>
-
-            <div class="observation-field">
-                <h3>OBSERVACIONES DE LA EMPRESA</h3>
-                <div class="observation-box">{{ companyHistory.observacionesEmpresa }}</div>
-            </div>
-
-            <div class="observation-field">
-                <h3>OBSERVACIONES DEL ESTUDIANTE EN LA EMPRESA</h3>
-                <div class="observation-box">{{ companyHistory.observacionesEstudiante }}</div>
-            </div>
-        </div>
-    </section>
+    </div>
 </div>

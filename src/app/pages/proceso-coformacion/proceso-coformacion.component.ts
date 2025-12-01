@@ -132,8 +132,17 @@ export class ProcesoCoformacionComponent implements OnInit {
 
     this.procesoCoformacionService.getById(this.procesoId).subscribe({
       next: (proceso) => {
-        this.proceso = proceso;
-        this.onEmpresaChange(); // Actualizar ofertas cuando se carga el proceso
+        // Asegurar que los IDs sean números para que se comparen correctamente en los selects
+        this.proceso = {
+          ...proceso,
+          proceso_id: Number(proceso.proceso_id),
+          estudiante: Number(proceso.estudiante),
+          empresa: Number(proceso.empresa),
+          oferta: Number(proceso.oferta),
+          estado: Number(proceso.estado)
+        };
+        // Actualizar ofertas cuando se carga el proceso pero NO limpiar la oferta
+        this.onEmpresaChange(true); // Pasar true para indicar que es modo edición
         this.isLoading = false;
       },
       error: (error) => {
@@ -166,7 +175,7 @@ export class ProcesoCoformacionComponent implements OnInit {
   }
 
   // Event handlers
-  onEmpresaChange() {
+  onEmpresaChange(isEditing: boolean = false) {
     const empresaIdNum = Number(this.proceso.empresa || 0);
     if (empresaIdNum && empresaIdNum > 0) {
       // Cargar ofertas de la empresa seleccionada (asegurando número)
@@ -176,12 +185,17 @@ export class ProcesoCoformacionComponent implements OnInit {
       const contacto = this.contactosEmpresa.find(c => c.empresa_id === this.proceso.empresa);
       this.contactoSeleccionado = contacto || null;
       
-      // Limpiar oferta seleccionada al cambiar de empresa
-      this.proceso.oferta = 0;
+      // Limpiar oferta seleccionada al cambiar de empresa SOLO si NO estamos en modo edición
+      if (!isEditing) {
+        this.proceso.oferta = 0;
+      }
     } else {
       this.ofertasFiltradas = [];
       this.contactoSeleccionado = null;
-      this.proceso.oferta = 0;
+      // Limpiar oferta solo si NO estamos editando
+      if (!isEditing) {
+        this.proceso.oferta = 0;
+      }
     }
   }
 
@@ -324,7 +338,16 @@ export class ProcesoCoformacionComponent implements OnInit {
   }
 
   verHistorialProcesos() {
-    this.router.navigate(['/historial-coformacion']);
+    const estudianteId = this.proceso.estudiante;
+    
+    if (!estudianteId || estudianteId === 0) {
+      alert('Por favor selecciona un estudiante primero');
+      return;
+    }
+    
+    this.router.navigate(['/historial-coformacion'], {
+      queryParams: { estudiante_id: estudianteId }
+    });
   }
 
   refreshData() {
