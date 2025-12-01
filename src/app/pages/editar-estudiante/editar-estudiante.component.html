@@ -117,84 +117,39 @@
             </div>
         </section>
 
-        <!-- Academic Information Section -->
+        <!-- Academic Information Section (Read-only) -->
         <section class="info-section">
             <h2>Información Académica</h2>
             <div class="info-grid">
                 <div class="form-row">
                     <div class="form-field">
-                        <label>Programa *</label>
-                        <select [(ngModel)]="estudiante.programa_id" 
-                                name="programa_id"
-                                required
-                                #programa="ngModel"
-                                class="form-control"
-                                [class.invalid]="programa.invalid && programa.touched">
-                            <option value="0">Seleccione un programa</option>
-                            <option *ngFor="let prog of programas" [value]="prog.programa_id">
-                                {{ prog.nombre }} - {{ getFacultadNombre(prog.programa_id) }}
-                            </option>
-                        </select>
-                        <div *ngIf="programa.invalid && programa.touched" class="error-message">
-                            Debe seleccionar un programa
-                        </div>
+                        <label>Programa</label>
+                        <div class="info-display">{{ getProgramaNombre(estudiante.programa_id) }}</div>
                     </div>
                     <div class="form-field">
                         <label>Promoción</label>
-                        <select [(ngModel)]="estudiante.promocion_id" 
-                                name="promocion_id"
-                                class="form-control">
-                            <option [value]="null">Sin promoción asignada</option>
-                            <option *ngFor="let promo of promociones" [value]="promo.promocion_id">
-                                {{ promo.descripcion }}
-                            </option>
-                        </select>
+                        <div class="info-display">{{ getPromocionNombre() }}</div>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-field">
                         <label>Nivel de Inglés</label>
-                        <select [(ngModel)]="estudiante.nivel_ingles_id" 
-                                name="nivelInglesId"
-                                class="form-control">
-                            <option [value]="null">Sin nivel asignado</option>
-                            <option *ngFor="let nivel of nivelesIngles" [value]="nivel.nivel_id">
-                                {{ nivel.nombre }}
-                            </option>
-                        </select>
+                        <div class="info-display">{{ getNivelInglesNombre() }}</div>
                     </div>
                     <div class="form-field">
                         <label>Estado de Cartera</label>
-                        <select [(ngModel)]="estudiante.estado_cartera_id" 
-                                name="estadoCarteraId"
-                                class="form-control">
-                            <option [value]="null">Sin estado asignado</option>
-                            <option *ngFor="let estado of estadosCartera" [value]="estado.estado_id">
-                                {{ estado.nombre }}
-                            </option>
-                        </select>
+                        <div class="info-display">{{ getEstadoCarteraNombre() }}</div>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-field">
                         <label>Fecha de Ingreso</label>
-                        <input type="text" 
-                               [value]="estudiante.fecha_ingreso | date:'dd/MM/yyyy'"
-                               readonly
-                               class="form-control readonly">
+                        <div class="info-display">{{ estudiante.fecha_ingreso | date:'dd/MM/yyyy' }}</div>
                     </div>
                 </div>
             </div>
-        </section>
-
-        <!-- Process Section Info -->
-        <section class="info-section">
-            <h2>Proceso de Coformación</h2>
-            <div class="process-info">
-                <p>Para editar información del proceso de coformación, use el botón correspondiente.</p>
-                <button type="button" class="process-button" (click)="navigateToProcesoCoformacion()">
-                    Editar Proceso de Coformación
-                </button>
+            <div class="info-note">
+                <p><strong>Nota:</strong> La información académica es gestionada por el área encargada. Contacte a administración si necesita realizar cambios.</p>
             </div>
         </section>
 

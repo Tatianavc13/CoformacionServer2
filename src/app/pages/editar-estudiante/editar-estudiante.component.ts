@@ -140,14 +140,31 @@ export class EditarEstudianteComponent implements OnInit {
     return '';
   }
 
+  getPromocionNombre(): string {
+    if (!this.estudiante.promocion_id) return 'Sin promoción asignada';
+    const promocion = this.promociones.find(p => p.promocion_id === this.estudiante.promocion_id);
+    return promocion ? promocion.descripcion : 'Sin promoción asignada';
+  }
+
+  getNivelInglesNombre(): string {
+    if (!this.estudiante.nivel_ingles_id) return 'Sin nivel asignado';
+    const nivel = this.nivelesIngles.find(n => n.nivel_id === this.estudiante.nivel_ingles_id);
+    return nivel ? nivel.nombre : 'Sin nivel asignado';
+  }
+
+  getEstadoCarteraNombre(): string {
+    if (!this.estudiante.estado_cartera_id) return 'Sin estado asignado';
+    const estado = this.estadosCartera.find(e => e.estado_id === this.estudiante.estado_cartera_id);
+    return estado ? estado.nombre : 'Sin estado asignado';
+  }
+
   // Validación del formulario
   isValidForm(): boolean {
     return !!(
       this.estudiante.nombre_completo.trim() &&
       this.estudiante.numero_documento.trim() &&
       this.estudiante.email_institucional.trim() &&
-      this.estudiante.tipo_documento &&
-      this.estudiante.programa_id
+      this.estudiante.tipo_documento
     );
   }
 
@@ -167,18 +184,19 @@ export class EditarEstudianteComponent implements OnInit {
     this.error = null;
     this.successMessage = null;
 
-    // Preparar datos para envío
-    const updateData = { ...this.estudiante };
-    
-    // Convertir valores vacíos/cero a null para campos opcionales
-    if (!updateData.telefono?.trim()) updateData.telefono = null;
-    if (!updateData.email_personal?.trim()) updateData.email_personal = null;
-    if (!updateData.direccion?.trim()) updateData.direccion = null;
-    if (!updateData.ciudad?.trim()) updateData.ciudad = null;
-    if (!updateData.foto_url?.trim()) updateData.foto_url = null;
-    if (!updateData.nivel_ingles_id) updateData.nivel_ingles_id = null;
-    if (!updateData.estado_cartera_id) updateData.estado_cartera_id = null;
-    if (!updateData.promocion_id) updateData.promocion_id = null;
+    // Preparar datos para envío - SOLO campos editables por estudiante
+    const updateData: any = {
+      nombre_completo: this.estudiante.nombre_completo,
+      tipo_documento: this.estudiante.tipo_documento,
+      numero_documento: this.estudiante.numero_documento,
+      email_institucional: this.estudiante.email_institucional,
+      telefono: this.estudiante.telefono?.trim() || null,
+      email_personal: this.estudiante.email_personal?.trim() || null,
+      celular: this.estudiante.celular,
+      direccion: this.estudiante.direccion?.trim() || null,
+      ciudad: this.estudiante.ciudad?.trim() || null,
+      foto_url: this.estudiante.foto_url?.trim() || null
+    };
 
     this.estudiantesService.update(this.estudiante.estudiante_id, updateData).subscribe({
       next: (response) => {
