@@ -79,6 +79,19 @@ class EmpresasViewSet(viewsets.ModelViewSet):
     queryset = Empresas.objects.all()
     serializer_class = EmpresasSerializer
 
+    def list(self, request, *args, **kwargs):
+        try:
+            return super().list(request, *args, **kwargs)
+        except Exception as e:
+            import traceback
+            error_trace = traceback.format_exc()
+            print(f"Error en EmpresasViewSet.list: {e}")
+            print(error_trace)
+            return Response(
+                {'error': f'Error al obtener empresas: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
     def retrieve(self, request, *args, **kwargs):
         try:
             return super().retrieve(request, *args, **kwargs)
@@ -102,10 +115,36 @@ class ContactosEmpresaViewSet(viewsets.ModelViewSet):
     queryset = ContactosEmpresa.objects.all()
     serializer_class = ContactosEmpresaSerializer
 
+    def list(self, request, *args, **kwargs):
+        try:
+            return super().list(request, *args, **kwargs)
+        except Exception as e:
+            import traceback
+            error_trace = traceback.format_exc()
+            print(f"Error en ContactosEmpresaViewSet.list: {e}")
+            print(error_trace)
+            return Response(
+                {'error': f'Error al obtener contactos de empresa: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 
 class OfertasEmpresasViewSet(viewsets.ModelViewSet):
     queryset = OfertasEmpresas.objects.all()
     serializer_class = OfertasEmpresasSerializer
+
+    def list(self, request, *args, **kwargs):
+        try:
+            return super().list(request, *args, **kwargs)
+        except Exception as e:
+            import traceback
+            error_trace = traceback.format_exc()
+            print(f"Error en OfertasEmpresasViewSet.list: {e}")
+            print(error_trace)
+            return Response(
+                {'error': f'Error al obtener ofertas: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     def create(self, request, *args, **kwargs):
         """
