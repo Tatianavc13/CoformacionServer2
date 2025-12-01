@@ -69,6 +69,13 @@ export class ProcesoCoformacionComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       if (params['id']) {
         this.procesoId = +params['id'];
+        // SEGURIDAD: Solo coformación y admin pueden editar procesos
+        if (this.userType === 'estudiante') {
+          console.warn('Un estudiante intentó editar un proceso. Esto está prohibido.');
+          this.error = 'No tienes permiso para editar procesos de coformación. Solo puedes verlos en el historial.';
+          this.isLoading = false;
+          return;
+        }
         this.isEditMode = true;
       }
       if (params['estudiante_id']) {

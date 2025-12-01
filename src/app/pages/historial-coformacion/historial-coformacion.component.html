@@ -66,9 +66,15 @@
                 </div>
 
                 <div class="proceso-actions">
-                    <button class="edit-btn" (click)="editarProceso(proceso.proceso_id)">
+                    <!-- Solo mostrar botón de edición para coformación y admin, NO para estudiantes -->
+                    <button class="edit-btn" 
+                            (click)="editarProceso(proceso.proceso_id)"
+                            *ngIf="userType !== 'estudiante'">
                         Editar Proceso
                     </button>
+                    <div *ngIf="userType === 'estudiante'" class="read-only-notice">
+                        Este historial es de solo lectura
+                    </div>
                 </div>
             </div>
         </div>

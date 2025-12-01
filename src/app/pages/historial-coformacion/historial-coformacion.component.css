@@ -194,6 +194,21 @@
     background-color: #1976D2;
 }
 
+.read-only-notice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 15px;
+    background-color: #e8f4f8;
+    color: #0277bd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid #81d4fa;
+    text-align: center;
+    min-height: 40px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .history-container {

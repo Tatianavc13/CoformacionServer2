@@ -1,18 +1,16 @@
 # Fix: Restricción de permisos en edición de información del estudiante
 
 ## Problema
-Cuando un estudiante accedía a "EDITAR INFORMACIÓN", podía modificar campos que no debería ser capaz de cambiar:
-- ❌ Información Académica (Programa)
-- ❌ Promoción
-- ❌ Nivel de Inglés
-- ❌ Estado de Cartera
+Cuando un estudiante accedía a funcionalidades del sistema, podía modificar campos que no debería ser capaz de cambiar:
+- ❌ Información Académica (Programa, Promoción, Nivel de Inglés, Estado de Cartera)
+- ❌ Editar procesos de coformación del historial
 - ❌ Acceso a editar el Proceso de Coformación
 
-Estos campos deberían ser gestionados exclusivamente por el área administrativa/encargada, no por los estudiantes.
+Estos campos deberían ser gestionados exclusivamente por el área administrativa/encargada de coformación, no por los estudiantes.
 
 ## Solución implementada
 
-### 1. **Cambios en el HTML** (`editar-estudiante.component.html`)
+### 1. **Restricción en Edición de Información del Estudiante** (`editar-estudiante.component.*`)
 
 #### Antes:
 - Todos los campos académicos tenían inputs/selects editables
