@@ -167,9 +167,10 @@ export class ProcesoCoformacionComponent implements OnInit {
 
   // Event handlers
   onEmpresaChange() {
-    if (this.proceso.empresa && this.proceso.empresa > 0) {
-      // Cargar ofertas de la empresa seleccionada
-      this.cargarOfertasEmpresa(this.proceso.empresa);
+    const empresaIdNum = Number(this.proceso.empresa || 0);
+    if (empresaIdNum && empresaIdNum > 0) {
+      // Cargar ofertas de la empresa seleccionada (asegurando número)
+      this.cargarOfertasEmpresa(empresaIdNum);
       
       // Obtener contacto principal de la empresa
       const contacto = this.contactosEmpresa.find(c => c.empresa_id === this.proceso.empresa);
@@ -187,10 +188,11 @@ export class ProcesoCoformacionComponent implements OnInit {
   cargarOfertasEmpresa(empresaId: number) {
     this.isLoadingOfertas = true;
     // Filtrar ofertas por empresa desde el array local primero
+    const empresaIdNum = Number(empresaId || 0);
     this.ofertasFiltradas = this.ofertas.filter(o => {
-      // Verificar si la oferta pertenece a esta empresa
-      const ofertaEmpresaId = o.empresa || o.empresa_id;
-      return ofertaEmpresaId === empresaId;
+      // Verificar si la oferta pertenece a esta empresa (coercionar a número)
+      const ofertaEmpresaId = Number((o as any).empresa || (o as any).empresa_id || 0);
+      return ofertaEmpresaId === empresaIdNum;
     });
     
     // Si ya tenemos ofertas en el array local, usarlas

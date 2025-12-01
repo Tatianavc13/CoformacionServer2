@@ -2,15 +2,18 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { ApiConfigService } from './api-config.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CalendarioActividadesService {
 
-  private apiUrl = 'http://127.0.0.1:8001/api/calendario-actividades/';
+  private apiUrl: string;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private apiConfig: ApiConfigService) {
+    this.apiUrl = this.apiConfig.getCalendarioActividadesUrl();
+  }
 
   getAll(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl);

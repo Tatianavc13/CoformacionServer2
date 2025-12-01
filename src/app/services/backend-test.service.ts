@@ -75,8 +75,9 @@ export class BackendTestService {
       })),
       catchError(error => {
         let message = 'Error conectando con el backend';
+        const baseUrl = this.apiConfig.getBaseUrl();
         if (error.status === 0) {
-          message = 'Backend no disponible. Verifica que Django esté ejecutándose en http://127.0.0.1:8001';
+          message = `Backend no disponible. Verifica que Django esté ejecutándose en ${baseUrl}`;
         } else if (error.status === 404) {
           message = 'Endpoint no encontrado. Verifica las URLs de la API';
         } else if (error.status >= 500) {
