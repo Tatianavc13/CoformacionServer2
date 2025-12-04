@@ -65,6 +65,11 @@ class EstudiantesViewSet(viewsets.ModelViewSet):
     serializer_class = EstudiantesSerializer
 
 
+class EstudiantesEpsViewSet(viewsets.ModelViewSet):
+    queryset = EstudiantesEps.objects.all()
+    serializer_class = EstudiantesEpsSerializer
+
+
 class SectoresEconomicosViewSet(viewsets.ModelViewSet):
     queryset = SectoresEconomicos.objects.all()
     serializer_class = SectoresEconomicosSerializer

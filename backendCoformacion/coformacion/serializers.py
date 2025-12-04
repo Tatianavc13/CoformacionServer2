@@ -71,10 +71,19 @@ class ContactosDeEmergenciaSerializer(serializers.ModelSerializer):
         fields = '__all__'
         extra_kwargs = {'estudiante': {'required': False}}
 
+
+class EstudiantesEpsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EstudiantesEps
+        fields = '__all__'
+
+
 class EstudiantesSerializer(serializers.ModelSerializer):
     nombre_completo = serializers.ReadOnlyField()
     contacto_emergencia = serializers.SerializerMethodField(read_only=True)
     contacto_emergencia_input = ContactosDeEmergenciaSerializer(write_only=True, required=False)
+    eps_info = serializers.SerializerMethodField(read_only=True)
+    eps_input = serializers.PrimaryKeyRelatedField(queryset=EstudiantesEps.objects.all(), write_only=True, required=False, allow_null=True)
     
     class Meta:
         model = Estudiantes
@@ -86,12 +95,39 @@ class EstudiantesSerializer(serializers.ModelSerializer):
             return ContactosDeEmergenciaSerializer(contacto).data
         return None
 
+    def get_eps_info(self, obj):
+        if obj.eps_id:
+            return EstudiantesEpsSerializer(obj.eps_id).data
+        return None
+
     def create(self, validated_data):
         contacto_data = validated_data.pop('contacto_emergencia_input', None)
+        eps_data = validated_data.pop('eps_input', None)
         estudiante = Estudiantes.objects.create(**validated_data)
         if contacto_data:
             ContactosDeEmergencia.objects.create(estudiante=estudiante, **contacto_data)
         return estudiante
+
+    def update(self, instance, validated_data):
+        contacto_data = validated_data.pop('contacto_emergencia_input', None)
+        eps_data = validated_data.pop('eps_input', None)
+        
+        # Actualizar datos del estudiante
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        # Actualizar o crear contacto de emergencia
+        if contacto_data:
+            try:
+                contacto = ContactosDeEmergencia.objects.get(estudiante=instance)
+                for attr, value in contacto_data.items():
+                    setattr(contacto, attr, value)
+                contacto.save()
+            except ContactosDeEmergencia.DoesNotExist:
+                ContactosDeEmergencia.objects.create(estudiante=instance, **contacto_data)
+        
+        return instance
 
 
 class SectoresEconomicosSerializer(serializers.ModelSerializer):

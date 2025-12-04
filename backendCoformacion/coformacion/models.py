@@ -202,6 +202,7 @@ class Estudiantes(models.Model):
     estado_cartera_id = models.ForeignKey('EstadosCartera', on_delete=models.SET_NULL, null=True, blank=True, db_column='estado_cartera_id')
     promocion_id = models.ForeignKey('Promociones', on_delete=models.SET_NULL, null=True, blank=True, db_column='promocion_id')
     empresa_id = models.ForeignKey('Empresas', on_delete=models.SET_NULL, null=True, blank=True, db_column='empresa_id')
+    eps_id = models.ForeignKey('EstudiantesEps', on_delete=models.SET_NULL, null=True, blank=True, db_column='eps_id')
 
     class Meta:
         db_table = 'estudiantes'
@@ -220,6 +221,14 @@ class ContactosDeEmergencia(models.Model):
 
     class Meta:
         db_table = 'contactos_de_emergencia'
+
+
+class EstudiantesEps(models.Model):
+    eps_id = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=200, unique=True)
+
+    class Meta:
+        db_table = 'estudiantes_eps'
 
 
 class SectoresEconomicos(models.Model):

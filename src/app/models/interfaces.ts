@@ -76,6 +76,12 @@ export interface Estudiante {
     telefono?: string | null;
     correo?: string | null;
   };
+  // EPS (sistema de salud) - puede venir como ID o como objeto anidado `eps_info`
+  eps_id?: number | null;
+  eps_info?: {
+    eps_id: number;
+    nombre: string;
+  } | null;
 }
 
 export interface SectorEconomico {
