@@ -17,6 +17,7 @@ interface OfertaForm {
   valor_apoyo_economico: number | undefined;
   nombre_responsable: string;
   modalidad: string;
+  brinda_eps: string;
 }
 
 @Component({
@@ -31,6 +32,7 @@ export class PublicarOfertaComponent implements OnInit {
   ubicacionesList: string[] = ['Nacional', 'Internacional'];
   apoyoEconomicoList: string[] = ['Si', 'No'];
   modalidadList: string[] = ['Presencial', 'Virtual', 'Híbrido'];
+  brindasEPSList: string[] = ['Si', 'No'];
 
   ofertaForm: OfertaForm = {
     descripcion: '',
@@ -41,7 +43,8 @@ export class PublicarOfertaComponent implements OnInit {
     apoyo_economico: '',
     valor_apoyo_economico: undefined,
     nombre_responsable: '',
-    modalidad: ''
+    modalidad: '',
+    brinda_eps: ''
   };
 
   isLoading = false;
@@ -217,7 +220,8 @@ export class PublicarOfertaComponent implements OnInit {
         ? Number(this.ofertaForm.valor_apoyo_economico) 
         : undefined,
       nombre_responsable: this.ofertaForm.nombre_responsable || '',
-      modalidad: this.ofertaForm.modalidad || 'Presencial'
+      modalidad: this.ofertaForm.modalidad || 'Presencial',
+      brinda_eps: this.ofertaForm.brinda_eps || 'No'
     };
 
     // Validación adicional: asegurar que empresa esté presente
@@ -302,6 +306,11 @@ export class PublicarOfertaComponent implements OnInit {
 
     if (!this.ofertaForm.modalidad) {
       this.error = 'Debe seleccionar una modalidad.';
+      return false;
+    }
+
+    if (!this.ofertaForm.brinda_eps) {
+      this.error = 'Debe especificar si brinda afiliación a EPS.';
       return false;
     }
 

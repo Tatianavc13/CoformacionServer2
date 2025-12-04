@@ -341,6 +341,7 @@ class OfertasEmpresas(models.Model):
     empresa = models.ForeignKey(Empresas, on_delete=models.CASCADE, db_column='empresa_id')
     programa_id = models.ForeignKey('Programas', on_delete=models.SET_NULL, null=True, blank=True, db_column='programa_id')
     Ofrece_apoyo = models.CharField(max_length=100, blank=True, null=True, db_column='Ofrece_apoyo')
+    brinda_eps = models.CharField(max_length=3, choices=APOYO_ECONOMICO_CHOICES, default='No', db_column='brinda_eps', blank=True, null=True)
     
     # Campos nuevos agregados en migración 0003
     # Comentados temporalmente porque no existen en la BD actual

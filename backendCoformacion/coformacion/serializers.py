@@ -279,13 +279,14 @@ class OfertasEmpresasSerializer(serializers.ModelSerializer):
     nombreEmpresa = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     programa_id = serializers.PrimaryKeyRelatedField(queryset=Programas.objects.all(), required=False, allow_null=True)
     Ofrece_apoyo = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    brinda_eps = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = OfertasEmpresas
         # Usar fields en lugar de exclude para tener control total
         fields = ['idOferta', 'nacional', 'nombreTutor', 'apoyoEconomico', 
                  'modalidad', 'nombreEmpresa', 'empresa', 'programa_id', 'Ofrece_apoyo',
-                 'empresa_nombre', 'programa_nombre']
+                 'brinda_eps', 'empresa_nombre', 'programa_nombre']
         extra_fields = ['empresa_nombre', 'programa_nombre']
     
     def __init__(self, *args, **kwargs):
@@ -698,8 +699,17 @@ class OfertasEmpresasSerializer(serializers.ModelSerializer):
             ofrece_apoyo_value = 'No'
         data_para_crear['Ofrece_apoyo'] = ofrece_apoyo_value
         
+        # Mapear brinda_eps
+        # Asegurar que siempre sea 'Si' o 'No'
+        brinda_eps_value = validated_data.get('brinda_eps', 'No')
+        if brinda_eps_value is None or brinda_eps_value == '':
+            brinda_eps_value = 'No'
+        elif brinda_eps_value not in ['Si', 'No']:
+            brinda_eps_value = 'No'
+        data_para_crear['brinda_eps'] = brinda_eps_value
+        
         # Remover campos que no existen en el modelo
-        campos_permitidos = ['nacional', 'nombreTutor', 'apoyoEconomico', 'modalidad', 'nombreEmpresa', 'empresa', 'programa_id', 'Ofrece_apoyo']
+        campos_permitidos = ['nacional', 'nombreTutor', 'apoyoEconomico', 'modalidad', 'nombreEmpresa', 'empresa', 'programa_id', 'Ofrece_apoyo', 'brinda_eps']
         campos_finales = {k: v for k, v in data_para_crear.items() if k in campos_permitidos}
         
         # Validar que todos los campos requeridos estén presentes y no sean None
@@ -747,6 +757,10 @@ class OfertasEmpresasSerializer(serializers.ModelSerializer):
         # Mapear Ofrece_apoyo a apoyo_economico para el frontend
         if 'Ofrece_apoyo' in data:
             data['apoyo_economico'] = data['Ofrece_apoyo']
+        
+        # Mapear brinda_eps para asegurar que esté en la respuesta
+        if 'brinda_eps' in data:
+            data['brinda_eps'] = data['brinda_eps']
         
         # Mapear nombreTutor a nombre_responsable
         if 'nombreTutor' in data:
