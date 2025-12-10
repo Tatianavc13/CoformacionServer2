@@ -26,8 +26,9 @@ class Permisos(models.Model):
 
 
 class RolesPermisos(models.Model):
-    rol = models.ForeignKey(Roles, on_delete=models.DO_NOTHING)
-    permiso = models.ForeignKey(Permisos, on_delete=models.DO_NOTHING)
+    id = models.BigAutoField(primary_key=True)
+    rol = models.ForeignKey(Roles, on_delete=models.DO_NOTHING, db_column='rol_id')
+    permiso = models.ForeignKey(Permisos, on_delete=models.DO_NOTHING, db_column='permiso_id')
     fecha_asignacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
@@ -92,17 +93,32 @@ class Programas(models.Model):
 
 class MateriasNucleo(models.Model):
     materia_id = models.AutoField(primary_key=True)
+    codigo = models.CharField(max_length=20)
     nombre = models.CharField(max_length=100)
-    programa = models.ForeignKey(Programas, on_delete=models.DO_NOTHING)
+    programa = models.ForeignKey(Programas, on_delete=models.DO_NOTHING, db_column='programa_id')
+    semestre = models.IntegerField()
+    creditos = models.IntegerField()
+    horas_teoricas = models.IntegerField(blank=True, null=True)
+    horas_practicas = models.IntegerField(blank=True, null=True)
+    estado = models.BooleanField(blank=True, null=True, default=True)
+    fecha_creacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         db_table = 'materias_nucleo'
 
 
 class ObjetivosAprendizaje(models.Model):
+    TIPO_CHOICES = [
+        ('General', 'General'),
+        ('Específico', 'Específico'),
+    ]
+    
     objetivo_id = models.AutoField(primary_key=True)
     descripcion = models.TextField()
-    materia = models.ForeignKey(MateriasNucleo, on_delete=models.DO_NOTHING)
+    materia = models.ForeignKey(MateriasNucleo, on_delete=models.DO_NOTHING, db_column='materia_id')
+    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
+    estado = models.BooleanField(blank=True, null=True, default=True)
+    fecha_creacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         db_table = 'objetivos_aprendizaje'
@@ -173,12 +189,8 @@ class Estudiantes(models.Model):
 
     estudiante_id = models.AutoField(primary_key=True)
     codigo_estudiante = models.CharField(max_length=20, unique=True)
-    nombres = models.CharField(max_length=300)
-    apellidos = models.CharField(max_length=300)
-    
-    @property
-    def nombre_completo(self):
-        return f"{self.nombres} {self.apellidos}"
+    nombres = models.CharField(max_length=300, blank=True, null=True)
+    apellidos = models.CharField(max_length=300, blank=True, null=True)
     tipo_documento = models.CharField(max_length=3, choices=TIPO_DOCUMENTO_CHOICES)
     numero_documento = models.CharField(max_length=20, unique=True)
     fecha_nacimiento = models.DateField()
@@ -203,6 +215,13 @@ class Estudiantes(models.Model):
     promocion_id = models.ForeignKey('Promociones', on_delete=models.SET_NULL, null=True, blank=True, db_column='promocion_id')
     empresa_id = models.ForeignKey('Empresas', on_delete=models.SET_NULL, null=True, blank=True, db_column='empresa_id')
     eps_id = models.ForeignKey('EstudiantesEps', on_delete=models.SET_NULL, null=True, blank=True, db_column='eps_id')
+
+    @property
+    def nombre_completo(self):
+        """Retorna el nombre completo del estudiante concatenando nombres y apellidos"""
+        nombres = self.nombres or ''
+        apellidos = self.apellidos or ''
+        return f"{nombres} {apellidos}".strip()
 
     class Meta:
         db_table = 'estudiantes'
@@ -233,7 +252,11 @@ class EstudiantesEps(models.Model):
 
 class SectoresEconomicos(models.Model):
     sector_id = models.AutoField(primary_key=True)
+    codigo = models.CharField(max_length=10)
     nombre = models.CharField(max_length=100)
+    descripcion = models.TextField(blank=True, null=True)
+    estado = models.BooleanField(blank=True, null=True, default=True)
+    fecha_creacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         db_table = 'sectores_economicos'
@@ -242,6 +265,10 @@ class SectoresEconomicos(models.Model):
 class TamanosEmpresa(models.Model):
     tamano_id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100)
+    rango_empleados = models.CharField(max_length=100)
+    rango_activos = models.CharField(max_length=100, blank=True, null=True)
+    estado = models.BooleanField(blank=True, null=True, default=True)
+    fecha_creacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         db_table = 'tamanos_empresa'
@@ -320,20 +347,15 @@ class ContactosEmpresa(models.Model):
 
 
 class OfertasEmpresas(models.Model):
-    NACIONAL_CHOICES = [
-        ('No', 'No'),
-        ('Si', 'Si'),
-    ]
-
     MODALIDAD_CHOICES = [
         ('Presencial', 'Presencial'),
         ('Virtual', 'Virtual'),
         ('Híbrido', 'Híbrido'),
     ]
 
-    TIPO_OFERTA_CHOICES = [
-        ('Nacional', 'Nacional'),
-        ('Internacional', 'Internacional'),
+    NACIONAL_CHOICES = [
+        ('No', 'No'),
+        ('Si', 'Si'),
     ]
 
     APOYO_ECONOMICO_CHOICES = [
@@ -342,26 +364,15 @@ class OfertasEmpresas(models.Model):
     ]
 
     idOferta = models.AutoField(primary_key=True, db_column='idOferta')
-    nacional = models.CharField(max_length=2, choices=NACIONAL_CHOICES, blank=True, null=True)
-    nombreTutor = models.CharField(max_length=40, blank=True, null=True)
-    apoyoEconomico = models.DecimalField(max_digits=10, decimal_places=2, db_column='apoyoEconomico', blank=True, null=True)
-    modalidad = models.CharField(max_length=10, choices=MODALIDAD_CHOICES, blank=True, null=True)
-    nombreEmpresa = models.CharField(max_length=255, blank=True, null=True)
+    nacional = models.CharField(max_length=2, choices=NACIONAL_CHOICES)
+    nombreTutor = models.CharField(max_length=40)
+    apoyoEconomico = models.DecimalField(max_digits=10, decimal_places=2, db_column='apoyoEconomico')
+    modalidad = models.CharField(max_length=10, choices=MODALIDAD_CHOICES)
+    nombreEmpresa = models.CharField(max_length=255)
     empresa = models.ForeignKey(Empresas, on_delete=models.CASCADE, db_column='empresa_id')
     programa_id = models.ForeignKey('Programas', on_delete=models.SET_NULL, null=True, blank=True, db_column='programa_id')
-    Ofrece_apoyo = models.CharField(max_length=100, blank=True, null=True, db_column='Ofrece_apoyo')
-    brinda_eps = models.CharField(max_length=3, choices=APOYO_ECONOMICO_CHOICES, default='No', db_column='brinda_eps', blank=True, null=True)
-    
-    # Campos nuevos agregados en migración 0003
-    # Comentados temporalmente porque no existen en la BD actual
-    # tipo_oferta = models.CharField(max_length=20, choices=TIPO_OFERTA_CHOICES, blank=True, null=True)
-    # apoyo_economico = models.BooleanField(default=False)  # Cambiado a BooleanField en migración 0004
-    # nombre_responsable = models.CharField(max_length=255, blank=True, null=True)
-    
-    # Campos adicionales para descripción y fechas
-    # descripcion = models.TextField(blank=True, null=True)
-    # fecha_inicio = models.DateField(blank=True, null=True)
-    # fecha_fin = models.DateField(blank=True, null=True)
+    Ofrece_apoyo = models.CharField(max_length=3, default='No', db_column='Ofrece_apoyo')
+    brinda_eps = models.CharField(max_length=2, choices=APOYO_ECONOMICO_CHOICES, default='No', db_column='brinda_eps')
 
     class Meta:
         db_table = 'ofertasempresas'
@@ -370,6 +381,11 @@ class OfertasEmpresas(models.Model):
 class EstadoProceso(models.Model):
     estado_id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100)
+    descripcion = models.TextField(blank=True, null=True)
+    color = models.CharField(max_length=7, blank=True, null=True)
+    orden = models.IntegerField()
+    estado = models.BooleanField(blank=True, null=True, default=True)
+    fecha_creacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         db_table = 'estados_proceso'
@@ -377,12 +393,12 @@ class EstadoProceso(models.Model):
 
 class ProcesoCoformacion(models.Model):
     proceso_id = models.AutoField(primary_key=True)
-    estudiante = models.ForeignKey('Estudiantes', on_delete=models.CASCADE)
-    empresa = models.ForeignKey('Empresas', on_delete=models.CASCADE)
-    oferta = models.ForeignKey('OfertasEmpresas', on_delete=models.CASCADE)
+    estudiante = models.ForeignKey('Estudiantes', on_delete=models.CASCADE, db_column='estudiante_id')
+    empresa = models.ForeignKey('Empresas', on_delete=models.CASCADE, db_column='empresa_id')
+    oferta = models.ForeignKey('OfertasEmpresas', on_delete=models.CASCADE, db_column='oferta_id', to_field='idOferta')
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField(null=True, blank=True)
-    estado = models.ForeignKey(EstadoProceso, on_delete=models.SET_NULL, null=True)
+    estado = models.ForeignKey(EstadoProceso, on_delete=models.SET_NULL, null=True, db_column='estado_id')
     observaciones = models.TextField(null=True, blank=True)
 
     class Meta:
@@ -390,33 +406,61 @@ class ProcesoCoformacion(models.Model):
 
 
 class DocumentosProceso(models.Model):
+    ESTADO_CHOICES = [
+        ('Pendiente', 'Pendiente'),
+        ('En Revisión', 'En Revisión'),
+        ('Aprobado', 'Aprobado'),
+        ('Devuelto', 'Devuelto'),
+    ]
+    
     documento_id = models.AutoField(primary_key=True)
-    proceso = models.ForeignKey(ProcesoCoformacion, on_delete=models.CASCADE)
-    nombre = models.CharField(max_length=255)
-    archivo = models.FileField(upload_to='documentos_proceso/')
-    fecha_subida = models.DateTimeField(auto_now_add=True)
+    proceso = models.ForeignKey('ProcesosCoformacion', on_delete=models.CASCADE, db_column='proceso_id')
+    tipo_doc = models.ForeignKey('TiposDocumento', on_delete=models.RESTRICT, db_column='tipo_doc_id')
+    url_documento = models.CharField(max_length=255)
+    fecha_envio = models.DateTimeField()
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, blank=True, null=True, default='Pendiente')
+    observaciones = models.TextField(blank=True, null=True)
+    revisado_por = models.ForeignKey('Roles', on_delete=models.SET_NULL, null=True, blank=True, db_column='revisado_por')
+    fecha_revision = models.DateTimeField(blank=True, null=True)
+    fecha_aprobacion = models.DateTimeField(blank=True, null=True)
+    fecha_creacion = models.DateTimeField(blank=True, null=True)
+    fecha_actualizacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         db_table = 'documentos_proceso'
 
 
 class TiposActividad(models.Model):
-    tipo_id = models.AutoField(primary_key=True)
+    tipo_act_id = models.AutoField(primary_key=True, db_column='tipo_act_id')
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True, null=True)
+    color = models.CharField(max_length=7, blank=True, null=True)
+    estado = models.BooleanField(blank=True, null=True, default=True)
+    fecha_creacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         db_table = 'tipos_actividad'
 
 
 class CalendarioActividades(models.Model):
+    ESTADO_CHOICES = [
+        ('Pendiente', 'Pendiente'),
+        ('En Proceso', 'En Proceso'),
+        ('Completada', 'Completada'),
+        ('Cancelada', 'Cancelada'),
+    ]
+    
     actividad_id = models.AutoField(primary_key=True)
-    proceso = models.ForeignKey('ProcesoCoformacion', on_delete=models.CASCADE)
-    tipo_actividad = models.ForeignKey(TiposActividad, on_delete=models.SET_NULL, null=True)
-    descripcion = models.TextField()
-    fecha = models.DateField()
-    hora_inicio = models.TimeField()
-    hora_fin = models.TimeField()
+    tipo_actividad = models.ForeignKey(TiposActividad, on_delete=models.RESTRICT, db_column='tipo_act_id')
+    titulo = models.CharField(max_length=255)
+    descripcion = models.TextField(blank=True, null=True)
+    fecha_inicio = models.DateTimeField()
+    fecha_fin = models.DateTimeField()
+    proceso = models.ForeignKey('ProcesosCoformacion', on_delete=models.SET_NULL, null=True, blank=True, db_column='proceso_id')
+    ubicacion = models.CharField(max_length=255, blank=True, null=True)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, blank=True, null=True, default='Pendiente')
+    fecha_creacion = models.DateTimeField(blank=True, null=True)
+    fecha_actualizacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         db_table = 'calendario_actividades'
@@ -424,22 +468,113 @@ class CalendarioActividades(models.Model):
 
 class PlantillasCorreo(models.Model):
     plantilla_id = models.AutoField(primary_key=True)
+    codigo = models.CharField(max_length=50)
     nombre = models.CharField(max_length=100)
     asunto = models.CharField(max_length=255)
     cuerpo = models.TextField()
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    variables = models.TextField(blank=True, null=True)
+    estado = models.BooleanField(blank=True, null=True, default=True)
+    fecha_creacion = models.DateTimeField(blank=True, null=True)
+    fecha_actualizacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         db_table = 'plantillas_correo'
 
 
 class HistorialComunicaciones(models.Model):
+    ESTADO_CHOICES = [
+        ('Enviado', 'Enviado'),
+        ('Error', 'Error'),
+        ('Pendiente', 'Pendiente'),
+    ]
+    
     comunicacion_id = models.AutoField(primary_key=True)
-    estudiante = models.ForeignKey('Estudiantes', on_delete=models.CASCADE)
-    plantilla = models.ForeignKey(PlantillasCorreo, on_delete=models.SET_NULL, null=True)
-    fecha_envio = models.DateTimeField(auto_now_add=True)
-    enviado_por = models.CharField(max_length=100)
+    proceso = models.ForeignKey('ProcesosCoformacion', on_delete=models.CASCADE, db_column='proceso_id')
+    plantilla = models.ForeignKey(PlantillasCorreo, on_delete=models.RESTRICT, db_column='plantilla_id')
+    asunto = models.CharField(max_length=255)
+    contenido = models.TextField()
+    destinatarios = models.TextField()
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, blank=True, null=True)
+    error_mensaje = models.TextField(blank=True, null=True)
+    fecha_creacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         db_table = 'historial_comunicaciones'
+
+
+class Docentes(models.Model):
+    docente_id = models.AutoField(primary_key=True)
+    nombre_completo_docente = models.CharField(max_length=255)
+    cargo_docente = models.CharField(max_length=255)
+    telefono_docente = models.CharField(max_length=20, blank=True, null=True)
+    email_docente = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        db_table = 'docentes'
+
+
+class CortesCoformacion(models.Model):
+    corte_id = models.AutoField(primary_key=True)
+    numero_corte = models.CharField(max_length=255)
+    fecha_inicio_corte = models.DateField()
+    fecha_finalizacion_corte = models.DateField()
+
+    class Meta:
+        db_table = 'cortes_coformacion'
+
+
+class ProcesosCoformacion(models.Model):
+    MODALIDAD_CHOICES = [
+        ('Presencial', 'Presencial'),
+        ('Virtual', 'Virtual'),
+        ('Híbrido', 'Híbrido'),
+    ]
+    
+    CARTA_CHOICES = [
+        ('Si', 'Si'),
+        ('No', 'No'),
+    ]
+    
+    proceso_id = models.AutoField(primary_key=True)
+    estudiante = models.ForeignKey('Estudiantes', on_delete=models.CASCADE, db_column='estudiante_id')
+    empresa = models.ForeignKey('Empresas', on_delete=models.CASCADE, db_column='empresa_id')
+    estado = models.ForeignKey(EstadoProceso, on_delete=models.RESTRICT, db_column='estado_id')
+    fecha_inicio_fase_coformacion = models.DateField()
+    fecha_fin_fase_practica = models.DateField(blank=True, null=True)
+    fecha_ingreso_empresa = models.DateField(blank=True, null=True)
+    fecha_finalizacion_empresa = models.DateField(blank=True, null=True)
+    fecha_carta_presentacion = models.DateField(blank=True, null=True)
+    horario = models.TextField(blank=True, null=True)
+    forma_de_pago = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    trabaja_sabado = models.BooleanField(blank=True, null=True)
+    salario = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    modalidad_vinculacion = models.CharField(max_length=10, choices=MODALIDAD_CHOICES)
+    carta_presentacion_enviada = models.CharField(max_length=2, choices=CARTA_CHOICES)
+    carta_presentacion_recibida = models.CharField(max_length=2, choices=CARTA_CHOICES)
+    modalidad_coformacion = models.CharField(max_length=10, choices=MODALIDAD_CHOICES)
+    observaciones = models.TextField(blank=True, null=True)
+    fecha_creacion = models.DateTimeField(blank=True, null=True)
+    fecha_actualizacion = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'procesos_coformacion'
+        indexes = [
+            models.Index(fields=['fecha_inicio_fase_coformacion'], name='idx_fecha_inicio'),
+        ]
+
+
+class AcompanamientoEstudiantilCoformacion(models.Model):
+    acompanamiento_id = models.AutoField(primary_key=True, db_column='acompanamiento_id')
+    estudiante = models.ForeignKey('Estudiantes', on_delete=models.CASCADE, db_column='estudiante_id')
+    proceso = models.ForeignKey(ProcesosCoformacion, on_delete=models.SET_NULL, null=True, blank=True, db_column='proceso_id')
+    docente = models.ForeignKey(Docentes, on_delete=models.SET_NULL, null=True, blank=True, db_column='docente_id')
+    empresa = models.ForeignKey('Empresas', on_delete=models.SET_NULL, null=True, blank=True, db_column='empresa_id')
+    nombre_tutor_empresa = models.CharField(max_length=255, blank=True, null=True)
+    cargo_tutor_empresa = models.CharField(max_length=255, blank=True, null=True)
+    telefono_tutor_empresa = models.CharField(max_length=20, blank=True, null=True)
+    email_tutor_empresa = models.CharField(max_length=255, blank=True, null=True)
+    corte = models.ForeignKey(CortesCoformacion, on_delete=models.SET_NULL, null=True, blank=True, db_column='corte_id')
+
+    class Meta:
+        db_table = 'acompañamiento_estudiantil_coformacion'
 
