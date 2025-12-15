@@ -176,7 +176,7 @@ export class AgregarEstudianteComponent implements OnInit {
         empresa_id: formValue.empresa_id ? parseInt(formValue.empresa_id) : null,
         
         // Contacto de emergencia (si existe)
-        contacto_emergencia: formValue.contacto_emergencia ? {
+        contacto_emergencia_input: formValue.contacto_emergencia ? {
           nombres: formValue.contacto_emergencia.nombres.trim(),
           apellidos: formValue.contacto_emergencia.apellidos.trim(),
           parentesco: formValue.contacto_emergencia.parentesco.trim(),
