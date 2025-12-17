@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { EstudiantesService } from '../../services/estudiantes.service';
 import { ProgramasService } from '../../services/programas.service';
@@ -8,12 +8,13 @@ import { TiposDocumentoService } from '../../services/tipos_documento.service';
 import { NivelesInglesService } from '../../services/niveles_ingles.service';
 import { PromocionesService } from '../../services/promociones.service';
 import { EstadosCarteraService } from '../../services/estados_cartera.service';
+import { EstudiantesEpsService } from '../../services/estudiantes_eps.service';
 import { Estudiante, Programa, TipoDocumento, NivelIngles, Promocion, EstadoCartera } from '../../models/interfaces';
 
 @Component({
   selector: 'app-agregar-estudiante',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './agregar-estudiante.component.html',
   styleUrl: './agregar-estudiante.component.css'
 })
@@ -26,6 +27,12 @@ export class AgregarEstudianteComponent implements OnInit {
   nivelesIngles: NivelIngles[] = [];
   promociones: Promocion[] = [];
   estadosCartera: EstadoCartera[] = [];
+  listaEps: any[] = [];
+  
+  // Control para nueva EPS
+  mostrarNuevaEps = false;
+  nuevaEpsNombre = '';
+  nuevaEpsCodigo = '';
 
   // Opciones para campos de selección
   generoOptions = [
@@ -52,7 +59,8 @@ export class AgregarEstudianteComponent implements OnInit {
     private tiposDocumentoService: TiposDocumentoService,
     private nivelesInglesService: NivelesInglesService,
     private promocionesService: PromocionesService,
-    private estadosCarteraService: EstadosCarteraService
+    private estadosCarteraService: EstadosCarteraService,
+    private estudiantesEpsService: EstudiantesEpsService
   ) {
     this.estudianteForm = this.fb.group({
       // Información personal básica
@@ -85,6 +93,7 @@ export class AgregarEstudianteComponent implements OnInit {
       promocion_id: [null],
       estado_cartera_id: [null],
       empresa_id: [null],
+      eps_id: [null],
 
       // Foto (opcional)
       foto_url: [''],
@@ -110,12 +119,13 @@ export class AgregarEstudianteComponent implements OnInit {
       this.isLoading = true;
       this.error = null;
 
-      const [programas, tiposDocumento, nivelesIngles, promociones, estadosCartera] = await Promise.all([
+      const [programas, tiposDocumento, nivelesIngles, promociones, estadosCartera, listaEps] = await Promise.all([
         this.programasService.getAll().toPromise(),
         this.tiposDocumentoService.getAll().toPromise(),
         this.nivelesInglesService.getAll().toPromise(),
         this.promocionesService.getAll().toPromise(),
-        this.estadosCarteraService.getAll().toPromise()
+        this.estadosCarteraService.getAll().toPromise(),
+        this.estudiantesEpsService.getAll().toPromise()
       ]);
 
       this.programas = programas || [];
@@ -123,6 +133,7 @@ export class AgregarEstudianteComponent implements OnInit {
       this.nivelesIngles = nivelesIngles || [];
       this.promociones = promociones || [];
       this.estadosCartera = estadosCartera || [];
+      this.listaEps = listaEps || [];
 
     } catch (error) {
       console.error('Error cargando datos iniciales:', error);
@@ -174,6 +185,7 @@ export class AgregarEstudianteComponent implements OnInit {
         promocion_id: formValue.promocion_id ? parseInt(formValue.promocion_id) : null,
         estado_cartera_id: formValue.estado_cartera_id ? parseInt(formValue.estado_cartera_id) : null,
         empresa_id: formValue.empresa_id ? parseInt(formValue.empresa_id) : null,
+        eps_id: formValue.eps_id ? parseInt(formValue.eps_id) : null,
         
         // Contacto de emergencia (si existe)
         contacto_emergencia_input: formValue.contacto_emergencia ? {
@@ -244,6 +256,67 @@ export class AgregarEstudianteComponent implements OnInit {
 
   volverAConsultar() {
     this.router.navigate(['/consult-estudent']);
+  }
+
+  toggleNuevaEps() {
+    this.mostrarNuevaEps = !this.mostrarNuevaEps;
+    if (!this.mostrarNuevaEps) {
+      this.nuevaEpsNombre = '';
+      this.nuevaEpsCodigo = '';
+    }
+  }
+
+  async agregarNuevaEps() {
+    if (!this.nuevaEpsNombre.trim()) {
+      alert('Por favor ingrese el nombre de la EPS');
+      return;
+    }
+
+    try {
+      this.isLoading = true;
+
+      const nuevaEps = {
+        nombre: this.nuevaEpsNombre.trim(),
+        codigo: this.nuevaEpsCodigo.trim() || null
+      };
+
+      const epsCreada = await this.estudiantesEpsService.create(nuevaEps).toPromise();
+      
+      // Actualizar la lista de EPS
+      this.listaEps.push(epsCreada);
+      
+      // Seleccionar la nueva EPS en el formulario
+      this.estudianteForm.patchValue({
+        eps_id: epsCreada.eps_id
+      });
+
+      // Limpiar y cerrar el formulario de nueva EPS
+      this.nuevaEpsNombre = '';
+      this.nuevaEpsCodigo = '';
+      this.mostrarNuevaEps = false;
+
+      alert('EPS agregada exitosamente');
+
+    } catch (error: any) {
+      console.error('Error al crear EPS:', error);
+      
+      if (error.status === 409) {
+        // Conflicto - EPS ya existe
+        alert(error.error.error || 'Ya existe una EPS con ese nombre');
+        
+        // Si el backend devolvió el ID de la EPS existente, seleccionarla
+        if (error.error.eps_id) {
+          this.estudianteForm.patchValue({
+            eps_id: error.error.eps_id
+          });
+          this.mostrarNuevaEps = false;
+        }
+      } else {
+        alert('Error al crear la EPS: ' + (error.error?.error || 'Error desconocido'));
+      }
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   get f() { return this.estudianteForm.controls; }

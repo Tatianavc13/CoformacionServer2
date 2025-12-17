@@ -275,6 +275,91 @@ input[type="url"] {
   }
 }
 
+/* Estilos para el campo de EPS */
+.form-group {
+  position: relative;
+}
+
+.btn-agregar-eps {
+  margin-top: 8px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  display: block;
+  width: 100%;
+}
+
+.btn-agregar-eps:hover {
+  background-color: #218838;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+}
+
+.nueva-eps-container {
+  grid-column: 1 / -1;
+  margin-top: -10px;
+}
+
+.nueva-eps-form {
+  background-color: #f8f9fa;
+  border: 2px solid #28a745;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 10px;
+}
+
+.nueva-eps-form h4 {
+  color: #28a745;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+}
+
+.input-nueva-eps {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.input-nueva-eps:focus {
+  outline: none;
+  border-color: #28a745;
+  box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
+}
+
+.btn-guardar-eps {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.btn-guardar-eps:hover:not(:disabled) {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.btn-guardar-eps:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 @media (max-width: 480px) {
   .container {
     padding: 10px;

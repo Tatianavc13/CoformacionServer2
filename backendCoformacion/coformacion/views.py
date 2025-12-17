@@ -69,6 +69,40 @@ class EstudiantesEpsViewSet(viewsets.ModelViewSet):
     queryset = EstudiantesEps.objects.all()
     serializer_class = EstudiantesEpsSerializer
 
+    def create(self, request, *args, **kwargs):
+        """
+        Crear una nueva EPS validando que no exista duplicado por nombre
+        """
+        try:
+            nombre = request.data.get('nombre', '').strip()
+            
+            if not nombre:
+                return Response(
+                    {'error': 'El nombre de la EPS es obligatorio'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Verificar si ya existe una EPS con ese nombre (ignorando mayúsculas/minúsculas)
+            eps_existente = EstudiantesEps.objects.filter(nombre__iexact=nombre).first()
+            
+            if eps_existente:
+                return Response(
+                    {'error': f'Ya existe una EPS con el nombre "{nombre}"', 'eps_id': eps_existente.eps_id},
+                    status=status.HTTP_409_CONFLICT
+                )
+            
+            return super().create(request, *args, **kwargs)
+            
+        except Exception as e:
+            import traceback
+            error_trace = traceback.format_exc()
+            print(f"Error al crear EPS: {e}")
+            print(error_trace)
+            return Response(
+                {'error': f'Error al crear la EPS: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 
 class SectoresEconomicosViewSet(viewsets.ModelViewSet):
     queryset = SectoresEconomicos.objects.all()

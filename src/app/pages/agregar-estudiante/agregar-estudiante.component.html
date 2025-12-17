@@ -107,6 +107,35 @@
             El género es obligatorio
           </div>
         </div>
+
+        <div class="form-group">
+          <label>¿Qué EPS tiene?</label>
+          <select formControlName="eps_id" [class.is-invalid]="f['eps_id'].invalid && f['eps_id'].touched">
+            <option value="">Seleccionar EPS</option>
+            <option *ngFor="let eps of listaEps" [value]="eps.eps_id">
+              {{ eps.nombre }}
+            </option>
+          </select>
+          <button type="button" class="btn-agregar-eps" (click)="toggleNuevaEps()" 
+                  title="Agregar nueva EPS">
+            {{ mostrarNuevaEps ? '✕ Cancelar' : '+ Agregar EPS' }}
+          </button>
+        </div>
+
+        <!-- Formulario para agregar nueva EPS -->
+        <div class="form-group nueva-eps-container" *ngIf="mostrarNuevaEps">
+          <div class="nueva-eps-form">
+            <h4>Nueva EPS</h4>
+            <input type="text" [(ngModel)]="nuevaEpsNombre" [ngModelOptions]="{standalone: true}"
+                   placeholder="Nombre de la EPS *" class="input-nueva-eps">
+            <input type="text" [(ngModel)]="nuevaEpsCodigo" [ngModelOptions]="{standalone: true}"
+                   placeholder="Código (opcional)" class="input-nueva-eps">
+            <button type="button" class="btn-guardar-eps" (click)="agregarNuevaEps()"
+                    [disabled]="!nuevaEpsNombre.trim() || isLoading">
+              {{ isLoading ? 'Guardando...' : 'Guardar EPS' }}
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Contact Information Section -->

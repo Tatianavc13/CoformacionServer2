@@ -244,7 +244,8 @@ class ContactosDeEmergencia(models.Model):
 
 class EstudiantesEps(models.Model):
     eps_id = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=200, unique=True)
+    nombre = models.CharField(max_length=250, unique=True)
+    codigo = models.CharField(max_length=400, blank=True, null=True)
 
     class Meta:
         db_table = 'estudiantes_eps'
